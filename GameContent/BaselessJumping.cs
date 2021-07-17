@@ -28,10 +28,12 @@ namespace BaselessJumping.GameContent
         public static Keybind InputHandle = new("InputHandle", Keys.L);
         public static Keybind ShowFPS = new("View FPS", Keys.F10);
 
-
+        public static Player PlayerOne { get; private set; }
         private static bool _showFPS;
         internal static void Update()
         {
+            foreach (var player in Player.AllPlayers)
+                player.Update();
             if (ShowFPS.JustPressed)
                 _showFPS = !_showFPS;
             if (ViewAll.JustPressed)
@@ -62,7 +64,7 @@ namespace BaselessJumping.GameContent
             {
                 if (Input.MouseLeft && Utilities.MouseOnScreenProtected)
                 {
-                    Block.Methods.PlaceBlock(Utilities.MouseX_TBC, Utilities.MouseY_TBC, new Color(new Random().Next(0, 256), new Random().Next(0, 256), new Random().Next(0, 256)));
+                    Block.Methods.PlaceBlock(Utilities.MouseX_TBC, Utilities.MouseY_TBC);
                 }
                 if (Input.MouseRight && Utilities.MouseOnScreenProtected)
                 {
@@ -86,14 +88,13 @@ namespace BaselessJumping.GameContent
 
         internal static void Draw()
         {
+            foreach (var player in Player.AllPlayers)
+                player.Draw();
             if (_showFPS)
             {
                 BJGame.spriteBatch.DrawString(BJGame.Fonts.Lato,
                             $"{Math.Round(1 / LastCapturedGameTime.ElapsedGameTime.TotalSeconds)}",
                             new Vector2(0, Utilities.WindowHeight - 16), Color.White, 0f, Vector2.Zero, 0.35f, default, default);
-            }
-            if (Utilities.MouseOnScreenProtected)
-            {
             }
             ChatText.DrawAllButtons();
             foreach (var b in Block.Blocks)
@@ -107,6 +108,13 @@ namespace BaselessJumping.GameContent
 
         internal static void Init()
         {
+            PlayerOne = new();
+            PlayerOne.width = 25;
+            PlayerOne.height = 25;
+            PlayerOne.position = new Vector2(500, 500);
+
+            foreach (var player in Player.AllPlayers)
+                player.Initialize();
             Internal_InitButtons();
 
             for (int i = 0; i < Utilities.WindowWidth / 16; i++)

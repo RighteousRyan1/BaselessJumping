@@ -10,21 +10,31 @@ namespace BaselessJumping.GameContent
     public class Block
     {
         public static Block[,] Blocks = new Block[1000, 1000];
+
+        public const int BLOCKS_MAX = 16000;
+        internal readonly int amount_current_blocks = 0;
+
         public bool Active { get; internal set; }
         public Color Color { get; set; }
 
         public bool HasCollision { get; set; }
 
-        public const int BLOCKS_MAX = 16000;
-        internal readonly int amount_current_blocks = 0;
-
         public int X { get; }
         public int Y { get; }
+
+        public TileFraming FramingStyle { get; private set; }
 
         public int xWorld;
         public int yWorld;
 
         public Texture2D texture;
+
+        public Vector2 Center => new(xWorld + CollisionBox.Width / 2, CollisionBox.Y + CollisionBox.Height / 2);
+        public Vector2 Top => new(xWorld + (CollisionBox.Width / 2), yWorld);
+        public Vector2 Bottom => new(xWorld + (CollisionBox.Width / 2), yWorld + CollisionBox.Height);
+        public Vector2 Left => new(xWorld, yWorld + (CollisionBox.Height / 2));
+        public Vector2 Right => new(xWorld + CollisionBox.Width, yWorld + (CollisionBox.Height / 2));
+        public Rectangle CollisionBox => new(xWorld, yWorld, 16, 16);
 
         public class Methods
         {
@@ -50,7 +60,7 @@ namespace BaselessJumping.GameContent
                 SoundPlayer.PlaySoundInstance(BJGame.Sounds.BlockBreak, 0.1f);
             }
         }
-        public TileFraming FramingStyle { get; private set; }
+
         internal Block(int x, int y, bool active, Color color, bool collidable)
         {
             X = x;
@@ -299,7 +309,7 @@ namespace BaselessJumping.GameContent
                 }
             }
             BJGame.spriteBatch.Draw(BJGame.Textures.BlockTexture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
-            // Ryengine.spriteBatch.DrawString(Ryengine.FontLibrary.Amatic, ToString(), new(xWorld, yWorld), Color.White, 0f, Vector2.Zero, 0.5f, default, default);
+                // BJGame.spriteBatch.DrawString(BJGame.Fonts.Amatic, "X", Right, Color.White, 0f, Vector2.Zero, 0.5f, default, default);
         }
         public override string ToString()
         {

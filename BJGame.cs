@@ -63,8 +63,9 @@ namespace BaselessJumping
 
 		public BJGame() : base()
 		{
+			IsFixedTimeStep = true;
 			Instance = this;
-			GDManager = new GraphicsDeviceManager(this);
+			GDManager = new(this);
 			Content.RootDirectory = "Assets";
 			Console.Title = "DebugConsole";
 			Window.Title = $"Baseless Jumping: {Lang.GetRandomGameTitle()}";
@@ -116,7 +117,7 @@ namespace BaselessJumping
 		protected override void Draw(GameTime gameTime)
         {
 			GraphicsDevice.Clear(Color.Black);
-			spriteBatch.Begin();
+			spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 			DrawGameContent();
 			GameContent.BaselessJumping.Draw();
 
@@ -160,7 +161,7 @@ namespace BaselessJumping
             spriteBatch.End();
         }
 
-		public void AssetsAndOtherInit()
+		private void AssetsAndOtherInit()
         {
 			if (Directory.Exists($"{ExePath}/Assets"))
 			{
@@ -183,7 +184,7 @@ namespace BaselessJumping
 			IsMouseVisible = true;
 		}
 
-		public void LoadGameContent()
+		private void LoadGameContent()
         {
             #region Content Loading
             Fonts.SilkPixel = Content.Load<SpriteFont>("SilkPixel");
@@ -213,7 +214,7 @@ namespace BaselessJumping
 			#endregion
 		}
 
-        public static void UpdateGameContent()
+		private static void UpdateGameContent()
         {
 			foreach (var bind in Keybind.AllKeybinds)
 				bind.Update();
@@ -223,7 +224,7 @@ namespace BaselessJumping
 				tButton.UpdateButton();
 		}
 
-		public static void DrawGameContent()
+		private static void DrawGameContent()
         {
 			foreach (var tButton in TextButton.AllTextButtons)
 				tButton.Draw(false);

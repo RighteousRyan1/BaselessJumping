@@ -112,7 +112,6 @@ namespace BaselessJumping.Internals.Common
             chosenTs.Clear();
             return values;
         }
-
         public static void DrawStringAtMouse(object text) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), MousePosition + new Vector2(25), Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
     }
 }
