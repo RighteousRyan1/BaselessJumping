@@ -15,9 +15,9 @@ namespace BaselessJumping.GameContent
         public Vector2 position;
         public Vector2 oldPosition;
 
-        public readonly int whoAmI;
+        public int ID { get; private set; }
 
-        public bool active;
+        public bool InWorld { get; set; }
 
         public Rectangle Hitbox { get; set; }
     }
