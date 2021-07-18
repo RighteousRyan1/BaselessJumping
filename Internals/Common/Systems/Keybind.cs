@@ -14,7 +14,6 @@ namespace BaselessJumping.Internals.Common.Systems
             AssignedKey = defaultKey;
             AllKeybinds.Add(this);
         }
-        public bool IsKeyDown => Input.CurrentKeySnapshot.IsKeyDown(AssignedKey);
         public bool JustReassigned { get; private set; }
         public bool JustPressed => Input.KeyJustPressed(AssignedKey) && _bindingWait <= 0;
         public bool IsPressed => Input.CurrentKeySnapshot.IsKeyDown(AssignedKey) && _bindingWait <= 0;

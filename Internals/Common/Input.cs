@@ -48,5 +48,6 @@ namespace BaselessJumping.Internals.Common
                 return Keys.None;
             }
         }
+        public static int DeltaScrollWheel => CurrentMouseSnapshot.ScrollWheelValue / 120;
     }
 }

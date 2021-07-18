@@ -74,7 +74,7 @@ namespace BaselessJumping
         protected override void Initialize()
 		{
 			GDManager.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-			GDManager.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height - 50;
+			GDManager.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height - 60;
 			GDManager.ApplyChanges();
 			AssetsAndOtherInit();
 			GameContent.BaselessJumping.Init();

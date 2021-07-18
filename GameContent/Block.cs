@@ -34,6 +34,7 @@ namespace BaselessJumping.GameContent
         public Vector2 Bottom => new(xWorld + (CollisionBox.Width / 2), yWorld + CollisionBox.Height);
         public Vector2 Left => new(xWorld, yWorld + (CollisionBox.Height / 2));
         public Vector2 Right => new(xWorld + CollisionBox.Width, yWorld + (CollisionBox.Height / 2));
+
         public Rectangle CollisionBox => new(xWorld, yWorld, 16, 16);
 
         public class Methods
@@ -57,7 +58,16 @@ namespace BaselessJumping.GameContent
                     return;
 
                 block.Active = false;
+
                 SoundPlayer.PlaySoundInstance(BJGame.Sounds.BlockBreak, 0.1f);
+            }
+            public static Block GetValidBlock(int i, int j)
+            {
+                if (Blocks[i, j] == null)
+                {
+                    return new(0, 0, false, default, false);
+                }
+                return Blocks[i, j];
             }
         }
 
@@ -73,6 +83,7 @@ namespace BaselessJumping.GameContent
                 throw new Exception("Blocks amount was larger than " + nameof(BLOCKS_MAX) + $" ({BLOCKS_MAX})");
             Blocks[X, Y] = this;
         }
+
         internal void UpdateBlock()
         {
             xWorld = X * 16;
@@ -244,6 +255,7 @@ namespace BaselessJumping.GameContent
 
             return TileFraming.Middle;
         }
+
         public void Draw()
         {
             var frame = new Rectangle();

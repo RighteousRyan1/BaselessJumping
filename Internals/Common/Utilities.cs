@@ -9,6 +9,20 @@ namespace BaselessJumping.Internals.Common
 {
     public static class Utilities
     {
+        public static float ToRotation(this Vector2 vector)
+        {
+            return (float)Math.Atan2(vector.Y, vector.X);
+        }
+        public static Vector2 RotatedBy(this Vector2 spinPoint, double radians, Vector2 center = default)
+        {
+            float cosRotation = (float)Math.Cos(radians);
+            float sinRotation = (float)Math.Sin(radians);
+            Vector2 newPoint = spinPoint - center;
+            Vector2 result = center;
+            result.X += newPoint.X * cosRotation - newPoint.Y * sinRotation;
+            result.Y += newPoint.X * sinRotation + newPoint.Y * cosRotation;
+            return result;
+        }
         public static Vector3 ToVector3(this Vector2 twoD) => new(twoD.X, twoD.Y, 0f);
         public static Vector2 DistanceFrom(this Vector2 start, Vector2 target) => target - start;
         public static Vector2 MousePosition => new(Input.CurrentMouseSnapshot.X, Input.CurrentMouseSnapshot.Y);

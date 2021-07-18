@@ -34,11 +34,15 @@ namespace BaselessJumping.GameContent
         public int width;
         public int height;
 
-        private bool blockCollide;
+
+        private bool _canMoveLeft;
+        private bool _canMoveRight;
+        private bool _canMoveUp;
+        private bool _canMoveDown;
 
         private Rectangle FutureHitbox => new(Hitbox.X + (int)velocity.X, Hitbox.Y + (int)velocity.Y, width, height);
 
-        private bool IsMoving => !ControlLeft.IsKeyDown && !ControlRight.IsKeyDown;
+        private bool IsMoving => !ControlLeft.IsPressed && !ControlRight.IsPressed;
 
         public void Update()
         {
@@ -48,6 +52,9 @@ namespace BaselessJumping.GameContent
             Update_HandleEnemyAttack();
 
             Hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
+
+            if (!Hitbox.Intersects(new(-50, -50, Utilities.WindowWidth + 100, Utilities.WindowHeight + 100)))
+                velocity = Vector2.Zero;
 
             oldVelocity = velocity;
             oldPosition = position;
@@ -61,15 +68,40 @@ namespace BaselessJumping.GameContent
         }
         private void Update_TileCollision()
         {
-            foreach (var block in Block.Blocks)
+            // Rectangle
+            // Vector2
+            // Vector3
+            // Texture2D
+
+            var blockDown = Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 + 1);
+            var blockUp = Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 - 1);
+            var blockLeft = Block.Methods.GetValidBlock((int)position.X / 16 - 1, (int)position.Y / 16);
+            var blockRight = Block.Methods.GetValidBlock((int)position.X / 16 + 1, (int)position.Y / 16);
+
+            _canMoveRight = true;
+            _canMoveLeft = true;
+
+            if (blockDown.Active && blockDown.HasCollision)
             {
-                if (block != null)
-                {
-                    if (block.Active)
-                    {
-                        // TODO: get collision to work tbh
-                    }
-                }
+                if (velocity.Y > 0)
+                    velocity.Y = 0;
+            }
+            if (blockUp.Active && blockUp.HasCollision)
+            {
+                if (velocity.Y < 0)
+                    velocity.Y = 0;
+            }
+            if (blockLeft.Active && blockLeft.HasCollision)
+            {
+                _canMoveLeft = false;
+                if (velocity.X < 0)
+                    velocity.X = 0;
+            }
+            if (blockRight.Active && blockRight.HasCollision)
+            {
+                _canMoveRight = false;
+                if (velocity.X > 0)
+                    velocity.X = 0;
             }
 
             if (Input.MouseMiddle)
@@ -86,24 +118,24 @@ namespace BaselessJumping.GameContent
         {
             if (ControlJump.JustPressed)
             {
-                if (blockCollide)
+                // if (blockCollide)
                     velocity.Y -= 4f;
             }
-            if (ControlRight.IsKeyDown)
+            if (ControlRight.IsPressed && _canMoveRight)
             {
                 if (velocity.X < 3)
                 {
                     velocity.X += 0.5f;
                 }
             }
-            if (ControlLeft.IsKeyDown)
+            if (ControlLeft.IsPressed && _canMoveLeft)
             {
                 if (velocity.X > -3)
                 {
                     velocity.X -= 0.5f;
                 }
             }
-            if (blockCollide && !IsMoving)
+            if (!IsMoving)
                 velocity.X *= 0.25f;
         }
         public void Draw()
