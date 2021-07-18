@@ -9,6 +9,10 @@ namespace BaselessJumping.Internals.Common
 {
     public static class Utilities
     {
+        public static void QuickDraw(object text)
+        {
+
+        }
         public static float ToRotation(this Vector2 vector)
         {
             return (float)Math.Atan2(vector.Y, vector.X);

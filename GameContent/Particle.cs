@@ -24,7 +24,7 @@ namespace BaselessJumping.GameContent
         {
             current_notNull_particles++;
             id = current_notNull_particles;
-
+            active = true;
             particles[id] = this;
         }
 

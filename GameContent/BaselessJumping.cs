@@ -102,7 +102,7 @@ namespace BaselessJumping.GameContent
             Utilities.DrawStringAtMouse(Input.DeltaScrollWheel);
             Background.SetBackground(Input.DeltaScrollWheel);
             foreach (var player in Player.AllPlayers)
-                player.Draw();
+                player?.Draw();
             if (_showFPS)
             {
                 BJGame.spriteBatch.DrawString(BJGame.Fonts.Lato,
@@ -111,7 +111,7 @@ namespace BaselessJumping.GameContent
             }
             ChatText.DrawAllButtons();
             foreach (var b in Block.Blocks)
-                    b?.Draw();
+                b?.Draw();
 
             foreach (var p in Particle.particles)
                 p?.Draw();
