@@ -9,15 +9,11 @@ namespace BaselessJumping.Internals.Common
 {
     public static class Utilities
     {
-        public static void QuickDraw(object text)
-        {
-
-        }
         public static float ToRotation(this Vector2 vector)
         {
             return (float)Math.Atan2(vector.Y, vector.X);
         }
-        public static Vector2 RotatedBy(this Vector2 spinPoint, double radians, Vector2 center = default)
+        public static Vector2 RotatedByRadians(this Vector2 spinPoint, double radians, Vector2 center = default)
         {
             float cosRotation = (float)Math.Cos(radians);
             float sinRotation = (float)Math.Sin(radians);

@@ -160,7 +160,7 @@ namespace BaselessJumping.GameContent
             {
                 for (int i = 0; i < 360; i++)
                 {
-                    Particle.SpawnParticle(Utilities.MousePosition, new Vector2(0, 10).RotatedBy(i), Color.Red, 0.5f, 0f);
+                    Particle.SpawnParticle(Utilities.MousePosition, new Vector2(0, 10).RotatedByRadians(i), Color.Red, 0.5f, 0f);
                 }
             }
         }
