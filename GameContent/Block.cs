@@ -11,7 +11,7 @@ namespace BaselessJumping.GameContent
     {
         public static Block[,] Blocks = new Block[1000, 1000];
 
-        public const int BLOCKS_MAX = 16000;
+        public const int MAX_BLOCKS = 16000;
         internal readonly int amount_current_blocks = 0;
 
         public bool Active { get; internal set; }
@@ -63,11 +63,27 @@ namespace BaselessJumping.GameContent
             }
             public static Block GetValidBlock(int i, int j)
             {
-                if (Blocks[i, j] == null)
+                try
+                {
+                    if (Blocks[i, j] == null)
+                    {
+                        return new(0, 0, false, default, false);
+                    }
+                }
+                catch
                 {
                     return new(0, 0, false, default, false);
                 }
                 return Blocks[i, j];
+            }
+            public static Block GetActiveBlock(int i, int j)
+            {
+                var block = GetValidBlock(i, j);
+                if (!block.Active)
+                {
+                    return new(0, 0, false, default, false);
+                }
+                return block;
             }
         }
 
@@ -79,8 +95,8 @@ namespace BaselessJumping.GameContent
             Active = active;
             HasCollision = collidable;
             amount_current_blocks++;
-            if (amount_current_blocks > BLOCKS_MAX)
-                throw new Exception("Blocks amount was larger than " + nameof(BLOCKS_MAX) + $" ({BLOCKS_MAX})");
+            if (amount_current_blocks > MAX_BLOCKS)
+                throw new Exception("Blocks amount was larger than " + nameof(MAX_BLOCKS) + $" ({MAX_BLOCKS})");
             Blocks[X, Y] = this;
         }
 
@@ -88,137 +104,239 @@ namespace BaselessJumping.GameContent
         {
             xWorld = X * 16;
             yWorld = Y * 16;
-            if (Active)
-                FramingStyle = UpdateBlock_GetAutoFraming();
+
+            FramingStyle = UpdateBlock_GetAutoFraming();
         }
-        internal TileFraming UpdateBlock_GetAutoFraming()
+        private TileFraming UpdateBlock_GetAutoFraming()
         {
+            // who wants some spaghetti?
+            // check framing of surrounding blocks to determine corner-tiles
+            if (!Active)
+                return TileFraming.Middle;
+
+            var left = Methods.GetValidBlock(X - 1, Y);
+            var right = Methods.GetValidBlock(X + 1, Y);
+            var up = Methods.GetValidBlock(X, Y - 1);
+            var down = Methods.GetValidBlock(X, Y + 1);
+
+            #region Sub-Cardinal Framing
+
+            bool getTopLeftCornerFrame()
+            {
+                bool checkRight = right.FramingStyle == TileFraming.Middle || right.FramingStyle == TileFraming.Right || right.FramingStyle == TileFraming.TopRightCorner;
+                bool checkLeft = left.FramingStyle == TileFraming.Top || left.FramingStyle == TileFraming.TopLeft;
+                bool checkUp = up.FramingStyle == TileFraming.TopLeft;
+                bool checkDown = down.Active;
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getTopRightCornerFrame()
+            {
+                bool checkRight = right.FramingStyle == TileFraming.Top || right.FramingStyle == TileFraming.TopRight;
+                bool checkLeft = left.FramingStyle == TileFraming.Middle || left.FramingStyle == TileFraming.Left || left.FramingStyle == TileFraming.TopLeftCorner;
+                bool checkUp = up.FramingStyle == TileFraming.TopRight;
+                bool checkDown = down.Active;
+
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getBottomLeftCornerFrame()
+            {
+                bool checkRight = right.FramingStyle == TileFraming.Middle || right.FramingStyle == TileFraming.Right || right.FramingStyle == TileFraming.BottomRightCorner;
+                bool checkLeft = left.FramingStyle == TileFraming.Bottom || left.FramingStyle == TileFraming.BottomLeft;
+                bool checkUp = up.Active;
+                bool checkDown = down.FramingStyle == TileFraming.BottomLeft;
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getBottomRightCornerFrame()
+            {
+                bool checkRight = right.FramingStyle == TileFraming.Bottom || right.FramingStyle == TileFraming.BottomRight;
+                bool checkLeft = left.FramingStyle == TileFraming.Middle || left.FramingStyle == TileFraming.Left || left.FramingStyle == TileFraming.BottomLeftCorner;
+                bool checkUp = up.Active;
+                bool checkDown = down.FramingStyle == TileFraming.BottomRight;
+
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getRightUpDownFrame()
+            {
+                bool checkRight = right.FramingStyle == TileFraming.FacingRight;
+                bool checkLeft = left.Active;
+                bool checkUp = up.FramingStyle == TileFraming.TopRight;
+                bool checkDown = down.FramingStyle == TileFraming.BottomRight;
+
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getLeftUpDownFrame()
+            {
+                bool checkLeft = left.FramingStyle == TileFraming.FacingLeft;
+                bool checkRight = right.Active;
+                bool checkUp = up.FramingStyle == TileFraming.TopLeft;
+                bool checkDown = down.FramingStyle == TileFraming.BottomLeft;
+
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getUpLeftRightFrame()
+            {
+                bool checkLeft = left.FramingStyle == TileFraming.TopLeft;
+                bool checkDown = down.Active;
+                bool checkUp = up.FramingStyle == TileFraming.Up;
+                bool checkRight = right.FramingStyle == TileFraming.TopRight;
+
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            bool getDownLeftRightFrame()
+            {
+                bool checkLeft = left.FramingStyle == TileFraming.BottomLeft;
+                bool checkDown = down.FramingStyle == TileFraming.Down;
+                bool checkUp = up.Active;
+                bool checkRight = right.FramingStyle == TileFraming.BottomRight;
+
+                return checkDown && checkUp && checkRight && checkLeft;
+            }
+            #endregion
+            #region Cardinal Framing
             bool shouldBeTopLeftFramed()
             {
-                bool actualCond = Blocks[X + 1, Y].Active && Blocks[X, Y + 1].Active;
+                bool actualCond = right.Active && down.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X - 1, Y].Active && !Blocks[X, Y - 1].Active;
+                    !left.Active && !up.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeTopFramed()
             {
-                bool actualCond = Blocks[X, Y + 1].Active && Blocks[X - 1, Y].Active && Blocks[X + 1, Y].Active;
+                bool actualCond = down.Active && left.Active && right.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y - 1].Active;
+                    !up.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeTopRightFramed()
             {
-                bool actualCond = Blocks[X - 1, Y].Active && Blocks[X, Y + 1].Active;
+                bool actualCond = left.Active && down.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X + 1, Y].Active && !Blocks[X, Y - 1].Active;
+                    !right.Active && !up.Active;
 
 
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeLeftFramed()
             {
-                bool actualCond = Blocks[X + 1, Y].Active && Blocks[X, Y - 1].Active && Blocks[X, Y + 1].Active;
+                bool actualCond = right.Active && up.Active && down.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X - 1, Y].Active;
+                    !left.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeMiddleFramed()
             {
-                bool actualCond = Blocks[X + 1, Y].Active && Blocks[X - 1, Y].Active && Blocks[X, Y + 1].Active && Blocks[X, Y - 1].Active;
+                bool actualCond = right.Active && left.Active && down.Active && up.Active;
 
                 return actualCond;
             }
             bool shouldBeRightFramed()
             {
-                bool actualCond = Blocks[X - 1, Y].Active && Blocks[X, Y - 1].Active && Blocks[X, Y + 1].Active;
+                bool actualCond = left.Active && up.Active && down.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X + 1, Y].Active;
+                    !right.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeBottomLeftFramed()
             {
-                bool actualCond = Blocks[X + 1, Y].Active && Blocks[X, Y - 1].Active;
+                bool actualCond = right.Active && up.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X - 1, Y].Active && !Blocks[X, Y + 1].Active;
+                    !left.Active && !down.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeBottomFramed()
             {
-                bool actualCond = Blocks[X, Y - 1].Active && Blocks[X - 1, Y].Active && Blocks[X + 1, Y].Active;
+                bool actualCond = up.Active && left.Active && right.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y + 1].Active;
+                    !down.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeBottomRightFramed()
             {
-                bool actualCond = Blocks[X - 1, Y].Active && Blocks[X, Y - 1].Active;
+                bool actualCond = left.Active && up.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X + 1, Y].Active && !Blocks[X, Y + 1].Active;
+                    !right.Active && !down.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeLeftRightFramed()
             {
-                bool actualCond = Blocks[X - 1, Y].Active && Blocks[X + 1, Y].Active;
+                bool actualCond = left.Active && right.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y - 1].Active && !Blocks[X, Y + 1].Active;
+                    !up.Active && !down.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeUpFramed()
             {
-                bool actualCond = Blocks[X, Y + 1].Active;
+                bool actualCond = down.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y - 1].Active && !Blocks[X + 1, Y].Active && !Blocks[X - 1, Y].Active;
+                    !up.Active && !right.Active && !left.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeFacingRightFramed()
             {
-                bool actualCond = Blocks[X - 1, Y].Active;
+                bool actualCond = left.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y - 1].Active && !Blocks[X + 1, Y].Active && !Blocks[X, Y + 1].Active;
+                    !up.Active && !right.Active && !down.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeUpDownFramed()
             {
-                bool actualCond = Blocks[X, Y - 1].Active && Blocks[X, Y + 1].Active;
+                bool actualCond = up.Active && down.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X - 1, Y].Active && !Blocks[X + 1, Y].Active;
+                    !left.Active && !right.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeFacingLeftFramed()
             {
-                bool actualCond = Blocks[X + 1, Y].Active;
+                bool actualCond = right.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y - 1].Active && !Blocks[X - 1, Y].Active && !Blocks[X, Y + 1].Active;
+                    !up.Active && !left.Active && !down.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeDownFramed()
             {
-                bool actualCond = Blocks[X, Y - 1].Active;
+                bool actualCond = up.Active;
 
                 bool otherNeighborsInactive =
-                    !Blocks[X, Y + 1].Active && !Blocks[X - 1, Y].Active && !Blocks[X + 1, Y].Active;
+                    !down.Active && !left.Active && !right.Active;
                 return actualCond && otherNeighborsInactive;
             }
             bool shouldBeNeutralFramed()
             {
                 bool actualCond =
-                    !Blocks[X, Y - 1].Active && !Blocks[X, Y + 1].Active && !Blocks[X - 1, Y].Active && !Blocks[X + 1, Y].Active;
+                    !up.Active && !down.Active && !left.Active && !right.Active;
                 return actualCond;
             }
+            #endregion
+
+            if (getTopLeftCornerFrame())
+                return TileFraming.TopLeftCorner;
+            if (getTopRightCornerFrame())
+                return TileFraming.TopRightCorner;
+            if (getBottomLeftCornerFrame())
+                return TileFraming.BottomLeftCorner;
+            if (getBottomRightCornerFrame())
+                return TileFraming.BottomRightCorner;
+            if (getRightUpDownFrame())
+                return TileFraming.RightUpDown;
+            if (getLeftUpDownFrame())
+                return TileFraming.LeftUpDown;
+            if (getUpLeftRightFrame())
+                return TileFraming.UpLeftRight;
+            if (getDownLeftRightFrame())
+                return TileFraming.DownLeftRight;
 
             if (shouldBeTopLeftFramed())
                 return TileFraming.TopLeft;
@@ -294,6 +412,7 @@ namespace BaselessJumping.GameContent
                         frame = new Rectangle(36, 36, 16, 16);
                         break;
                     #endregion
+                    #region Other...
                     case TileFraming.Neutral:
                         frame = new Rectangle(0, 54, 16, 16);
                         break;
@@ -318,9 +437,36 @@ namespace BaselessJumping.GameContent
                     case TileFraming.Down:
                         frame = new Rectangle(18, 108, 16, 16);
                         break;
+
+                    #endregion
+                    case TileFraming.TopLeftCorner:
+                        frame = new(54, 36, 16, 16);
+                        break;
+                    case TileFraming.TopRightCorner:
+                        frame = new(54, 54, 16, 16);
+                        break;
+                    case TileFraming.BottomLeftCorner:
+                        frame = new(54, 0, 16, 16);
+                        break;
+                    case TileFraming.BottomRightCorner:
+                        frame = new(54, 18, 16, 16);
+                        break;
+
+                    case TileFraming.RightUpDown:
+                        frame = new(72, 0, 16, 16);
+                        break;
+                    case TileFraming.LeftUpDown:
+                        frame = new(72, 36, 16, 16);
+                        break;
+                    case TileFraming.UpLeftRight:
+                        frame = new(72, 54, 16, 16);
+                        break;
+                    case TileFraming.DownLeftRight:
+                        frame = new(72, 18, 16, 16);
+                        break;
                 }
             }
-            BJGame.spriteBatch.Draw(BJGame.Textures.BlockTexture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
+            BJGame.spriteBatch.Draw(BJGame.Textures.GrassBlockTexture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
                 // BJGame.spriteBatch.DrawString(BJGame.Fonts.Amatic, "X", Right, Color.White, 0f, Vector2.Zero, 0.5f, default, default);
         }
         public override string ToString()

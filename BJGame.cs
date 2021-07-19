@@ -58,7 +58,7 @@ namespace BaselessJumping
 			public static Texture2D UIBox;
 			public static Texture2D UIBoxChecked;
 
-			public static Texture2D BlockTexture;
+			public static Texture2D GrassBlockTexture;
 		}
 
 		public BJGame() : base()
@@ -105,10 +105,6 @@ namespace BaselessJumping
 				_showBoundKeybinds = !_showBoundKeybinds;
 
 			GameContent.BaselessJumping.Update();
-
-			foreach (var b in Block.Blocks)
-				if (b != null)
-					b.UpdateBlock();
 
 			Input.OldKeySnapshot = Input.CurrentKeySnapshot;
 			Input.OldMouseSnapshot = Input.CurrentMouseSnapshot;
@@ -210,7 +206,7 @@ namespace BaselessJumping
 			Textures.UIBox = Content.Load<Texture2D>("UIBox");
 			Textures.UIBoxChecked = Content.Load<Texture2D>("UIBoxChecked");
 			
-			Textures.BlockTexture = Content.Load<Texture2D>("TTS");
+			Textures.GrassBlockTexture = Content.Load<Texture2D>("GrassBlock");
 			#endregion
 		}
 

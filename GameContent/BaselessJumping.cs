@@ -10,7 +10,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Linq;
 using BaselessJumping.Internals.Common.Systems;
 using Microsoft.Xna.Framework.Content;
 
@@ -61,6 +60,8 @@ namespace BaselessJumping.GameContent
                     });
                 }
             }
+            foreach (var b in Block.Blocks)
+                b?.UpdateBlock();
             foreach (var p in Particle.particles)
                 p?.Update();
             foreach (var music in Music.AllMusic)
@@ -99,8 +100,25 @@ namespace BaselessJumping.GameContent
         internal static void Draw()
         {
             Background.DrawBGs();
-            Utilities.DrawStringAtMouse(Input.DeltaScrollWheel);
-            Background.SetBackground(Input.DeltaScrollWheel);
+            var X = Utilities.MouseX_TBC;
+            var Y = Utilities.MouseY_TBC;
+
+            var left = Block.Methods.GetValidBlock(X - 1, Y);
+            var right = Block.Methods.GetValidBlock(X + 1, Y);
+            var up = Block.Methods.GetValidBlock(X, Y - 1);
+            var down = Block.Methods.GetValidBlock(X, Y + 1);
+
+            bool getTopLeftCornerFrame()
+            {
+                bool checkLeft = left.FramingStyle == TileFraming.Top;
+                bool checkUp = up.FramingStyle == TileFraming.TopLeft;
+                bool checkDown = down.Active;
+                bool checkRight = right.FramingStyle == TileFraming.Middle;
+
+                return checkLeft && checkRight && checkUp && checkDown;
+            }
+            var c = Block.Methods.GetValidBlock(X, Y);
+            Utilities.DrawStringAtMouse($"l: {left.FramingStyle} | r: {right.FramingStyle} | d: {down.FramingStyle} | u: {up.FramingStyle} | c: {c.FramingStyle} -> {getTopLeftCornerFrame()}");
             foreach (var player in Player.AllPlayers)
                 player?.Draw();
             if (_showFPS)
@@ -143,7 +161,7 @@ namespace BaselessJumping.GameContent
 
         private static void Init_Players()
         {
-            PlayerOne = new();
+            PlayerOne = new(BJGame.Textures.WhitePixel);
             PlayerOne.width = 25;
             PlayerOne.height = 25;
             PlayerOne.position = new Vector2(500, 500);
@@ -153,15 +171,12 @@ namespace BaselessJumping.GameContent
         {
             OnInitializeButtons?.Invoke();
         }
-
         public static void TestingStuff_REMOVE_LATER_PLEASE()
         {
-            if (Input.KeyJustPressed(Keys.G))
+            var i = (float)Math.Sin(LastCapturedGameTime.TotalGameTime.TotalSeconds);
+            if (Input.CurrentKeySnapshot.IsKeyDown(Keys.G))
             {
-                for (int i = 0; i < 360; i++)
-                {
-                    Particle.SpawnParticle(Utilities.MousePosition, new Vector2(0, 10).RotatedByRadians(i), Color.Red, 0.5f, 0f);
-                }
+                Particle.SpawnParticle(Utilities.MousePosition, new Vector2(0, 10).RotatedByRadians(i), Color.Red, 0.5f, 0f);
             }
         }
     }

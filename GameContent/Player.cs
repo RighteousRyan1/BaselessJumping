@@ -6,6 +6,7 @@ using System;
 using BaselessJumping.Internals.Common.Systems;
 using Microsoft.Xna.Framework.Input;
 using BaselessJumping.Internals.Common;
+using BaselessJumping.Enums;
 
 namespace BaselessJumping.GameContent
 {
@@ -13,15 +14,12 @@ namespace BaselessJumping.GameContent
     public sealed class Player : Entity
     {
         public static List<Player> AllPlayers { get; set; } = new();
-        internal Player() { AllPlayers.Add(this); }
 
         public Keybind ControlDown { get; set; }
         public Keybind ControlUp { get; set; }
         public Keybind ControlLeft { get; set; }
         public Keybind ControlRight { get; set; }
         public Keybind ControlJump { get; set; }
-
-        private Vector2 predictedPosition;
 
         public Vector2 Top => new(position.X + (Hitbox.X / 2), position.Y);
 
@@ -33,23 +31,38 @@ namespace BaselessJumping.GameContent
 
         public int width;
         public int height;
-
+        public int direction;
 
         private bool _canMoveLeft;
         private bool _canMoveRight;
-        private bool _canMoveUp;
-        private bool _canMoveDown;
+        /*private bool _canMoveUp;
+        private bool _canMoveDown;*/
 
-        private Rectangle FutureHitbox => new(Hitbox.X + (int)velocity.X, Hitbox.Y + (int)velocity.Y, width, height);
+        public Team PvPTeam { get; set; }
 
-        private bool IsMoving => !ControlLeft.IsPressed && !ControlRight.IsPressed;
+        public Rectangle frame;
+        private Color auraColor;
+
+        public Texture2D Texture { get; private set; }
+
+        internal Player(Texture2D texture)
+        {
+            Texture = texture;
+            AllPlayers.Add(this);
+        }
+
+        // private Rectangle FutureHitbox => new(Hitbox.X + (int)velocity.X, Hitbox.Y + (int)velocity.Y, width, height);
+
+        private bool IsMoving => ControlLeft.IsPressed || ControlRight.IsPressed;
+        private bool _collideUnder;
 
         public void Update()
         {
-            Update_Velocity();
-            Update_TileCollision();
-            Update_Movement();
-            Update_HandleEnemyAttack();
+            UpdateVelocity();
+            UpdateTileCollision();
+            UpdateMovement();
+            UpdateRecieveAttack();
+            UpdateTeam();
 
             Hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
 
@@ -59,14 +72,13 @@ namespace BaselessJumping.GameContent
             oldVelocity = velocity;
             oldPosition = position;
         }
-        private void Update_Velocity()
+        private void UpdateVelocity()
         {
-            predictedPosition = position + velocity;
             position += velocity;
 
             velocity.Y += 0.075f;
         }
-        private void Update_TileCollision()
+        private void UpdateTileCollision()
         {
             // Rectangle
             // Vector2
@@ -85,7 +97,10 @@ namespace BaselessJumping.GameContent
             {
                 if (velocity.Y > 0)
                     velocity.Y = 0;
+                _collideUnder = true;
             }
+            else
+                _collideUnder = false;
             if (blockUp.Active && blockUp.HasCollision)
             {
                 if (velocity.Y < 0)
@@ -110,11 +125,11 @@ namespace BaselessJumping.GameContent
                 velocity = Vector2.Zero;
             }
         }
-        private void Update_HandleEnemyAttack()
+        private void UpdateRecieveAttack()
         {
 
         }
-        private void Update_Movement()
+        private void UpdateMovement()
         {
             if (ControlJump.JustPressed)
             {
@@ -135,14 +150,63 @@ namespace BaselessJumping.GameContent
                     velocity.X -= 0.5f;
                 }
             }
-            if (!IsMoving)
+            if (!IsMoving && _collideUnder)
                 velocity.X *= 0.25f;
+        }
+        private void UpdateTeam()
+        {
+            Color getTeamColor()
+            {
+                if (PvPTeam == Team.Red)
+                    return Color.Red;
+                if (PvPTeam == Team.Blue)
+                    return Color.Blue;
+                if (PvPTeam == Team.Green)
+                    return Color.Green;
+                if (PvPTeam == Team.Yellow)
+                    return Color.Yellow;
+                if (PvPTeam == Team.Orange)
+                    return Color.Orange;
+                if (PvPTeam == Team.Purple)
+                    return Color.Purple;
+                if (PvPTeam == Team.Pink)
+                    return Color.Pink;
+                if (PvPTeam == Team.Cyan)
+                    return Color.Cyan;
+
+                return Color.Gray; // This should be when PvPTeam is None
+            }
+            auraColor = getTeamColor();
         }
         public void Draw()
         {
             var sb = BJGame.spriteBatch;
-            sb.Draw(BJGame.Textures.WhitePixel, Hitbox, Color.White);
-            sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, default, 0f);
+            Draw_AuraPulsing();
+            sb.Draw(Texture, Hitbox, Color.White);
+            sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
+        }
+        private float _pulseScale;
+        private float _pulseAlpha;
+
+        private int _pulseCooldown;
+        /// <summary>
+        /// This needs some concrete finishing.
+        /// </summary>
+        private void Draw_AuraPulsing()
+        {
+            var sb = BJGame.spriteBatch;
+            var texture = Texture;
+
+            if (_pulseCooldown > 0)
+            {
+                _pulseCooldown--;
+                _pulseScale += 0.025f;
+                sb.Draw(texture, position, frame, auraColor * _pulseAlpha, 0f /* Maybe changed once player rotation is implemented. */, texture.Size() / 2, _pulseScale, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0f);
+            }
+            else
+            {
+                _pulseScale = 0.95f;
+            }
         }
         public void Initialize()
         {

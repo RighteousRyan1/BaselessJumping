@@ -9,6 +9,7 @@ namespace BaselessJumping.Internals.Common
 {
     public static class Utilities
     {
+        public static float GetRotationVectorOf(Vector2 initial, Vector2 target) => (target - initial).ToRotation();
         public static float ToRotation(this Vector2 vector)
         {
             return (float)Math.Atan2(vector.Y, vector.X);

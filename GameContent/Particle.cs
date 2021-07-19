@@ -7,7 +7,8 @@ namespace BaselessJumping.GameContent
 {
     public sealed class Particle : Entity
     {
-        public static Particle[] particles = new Particle[12000];
+        public const int MAX_PARTICLES = 12000;
+        public static Particle[] particles = new Particle[12001];
 
         public float scale;
         public float rotation;
@@ -42,10 +43,8 @@ namespace BaselessJumping.GameContent
                 current_notNull_particles--;
             }
         }
-        public void Draw()
-        {
+        public void Draw() =>
             BJGame.spriteBatch.Draw(defTexture, position, null, color, rotation, defTexture.Size() / 2, scale, default, 0f); 
-        }
 
         public static Particle SpawnParticle(Vector2 position, Vector2 velocity, Color color, float scale, float rotation)
         {

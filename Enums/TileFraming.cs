@@ -1,6 +1,6 @@
 namespace BaselessJumping.Enums
 {
-    public enum TileFraming : byte
+    public enum TileFraming : sbyte
     {
         TopLeft,
         Top,
@@ -17,6 +17,14 @@ namespace BaselessJumping.Enums
         UpDown,
         FacingRight,
         Down,
-        Neutral
+        Neutral,
+        TopLeftCorner,
+        TopRightCorner,
+        BottomLeftCorner,
+        BottomRightCorner,
+        RightUpDown,
+        LeftUpDown,
+        UpLeftRight,
+        DownLeftRight
     }
 }
