@@ -37,6 +37,8 @@ namespace BaselessJumping.Internals.Common
         public static Vector2 DistanceFrom(this Vector2 start, Vector2 target) => target - start;
         public static Vector2 MousePosition => new(Input.CurrentMouseSnapshot.X, Input.CurrentMouseSnapshot.Y);
         public static Vector2 MousePosition_ToBlockCoordinates => MousePosition / 16;
+        public static Vector2 ToBlockCoordinates(this Vector2 vector) => vector / 16;
+        public static Vector2 ToWorldCoordinates(this Vector2 vector) => vector * 16;
         public static int MouseX => (int)MousePosition.X;
         public static int MouseY => (int)MousePosition.Y;
         public static int MouseX_TBC => (int)MousePosition.X / 16;

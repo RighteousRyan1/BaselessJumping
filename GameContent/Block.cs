@@ -1,6 +1,7 @@
 using BaselessJumping.Audio;
 using BaselessJumping.Enums;
 using BaselessJumping.Internals.Common;
+using BaselessJumping.Internals.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -10,6 +11,10 @@ namespace BaselessJumping.GameContent
     public class Block
     {
         public static Block[,] Blocks = new Block[1000, 1000];
+
+        public int id;
+
+        private int _oldId;
 
         public const int MAX_BLOCKS = 16000;
         internal readonly int amount_current_blocks = 0;
@@ -27,6 +32,20 @@ namespace BaselessJumping.GameContent
         public int xWorld;
         public int yWorld;
 
+        private bool JustCreated
+        {
+            get
+            {
+                int curId = id;
+
+                var getChange = curId > 0 && _oldId == 0;
+
+                _oldId = curId;
+
+                return getChange;
+            }
+        }
+
         public Texture2D texture;
 
         public Vector2 Center => new(xWorld + CollisionBox.Width / 2, CollisionBox.Y + CollisionBox.Height / 2);
@@ -39,14 +58,14 @@ namespace BaselessJumping.GameContent
 
         public class Methods
         {
-            public static void PlaceBlock(int i, int j, Color color = default)
+            public static void PlaceBlock(int i, int j, int type, Color color = default)
             {
                 if (color == default)
                     color = Color.White;
                 var block = Blocks[i, j];
                 if (block.Active)
                     return;
-
+                block.id = type;
                 block.Active = true;
                 block.Color = color;
             }
@@ -87,8 +106,9 @@ namespace BaselessJumping.GameContent
             }
         }
 
-        internal Block(int x, int y, bool active, Color color, bool collidable)
+        internal Block(int x, int y, bool active, Color color, bool collidable, int type = 0)
         {
+            id = type;
             X = x;
             Y = y;
             Color = color;
@@ -100,12 +120,28 @@ namespace BaselessJumping.GameContent
             Blocks[X, Y] = this;
         }
 
-        internal void UpdateBlock()
+        internal void Update()
         {
+            Update_PerType();
             xWorld = X * 16;
             yWorld = Y * 16;
 
             FramingStyle = UpdateBlock_GetAutoFraming();
+        }
+        private void Update_PerType()
+        {
+            if (!Active)
+                id = 0;
+            if (JustCreated)
+            {
+                switch (id)
+                {
+                    case 1:
+                        texture = BJGame.Textures.GrassBlockTexture;
+                        break;
+                }
+                ChatText.NewText("Created");
+            }
         }
         private TileFraming UpdateBlock_GetAutoFraming()
         {

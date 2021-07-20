@@ -61,7 +61,7 @@ namespace BaselessJumping.GameContent
                 }
             }
             foreach (var b in Block.Blocks)
-                b?.UpdateBlock();
+                b?.Update();
             foreach (var p in Particle.particles)
                 p?.Update();
             foreach (var music in Music.AllMusic)
@@ -73,7 +73,7 @@ namespace BaselessJumping.GameContent
             {
                 if (Input.MouseLeft && Utilities.MouseOnScreenProtected)
                 {
-                    Block.Methods.PlaceBlock(Utilities.MouseX_TBC, Utilities.MouseY_TBC);
+                    Block.Methods.PlaceBlock(Utilities.MouseX_TBC, Utilities.MouseY_TBC, 1);
                 }
                 if (Input.MouseRight && Utilities.MouseOnScreenProtected)
                 {

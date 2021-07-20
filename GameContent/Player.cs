@@ -47,6 +47,8 @@ namespace BaselessJumping.GameContent
         public Rectangle frame;
         private Color auraColor;
 
+        public int OnBlockType { get; private set; }
+
         internal Player(Texture2D texture)
         {
             width = texture.Width;
@@ -98,6 +100,10 @@ namespace BaselessJumping.GameContent
                                 if (info.tValue < collisionInfo.tValue)
                                     collisionInfo = info;
                             }
+                            if (velocity.Y == 0)
+                                OnBlockType = block.id;//Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 + 1).id;
+                            else
+                                OnBlockType = 0;
                         }
                     }
                 }
@@ -208,6 +214,7 @@ namespace BaselessJumping.GameContent
             DrawAura();
             sb.Draw(texture, Hitbox, Color.White);
             // sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
+            sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
         }
         /// <summary>
         /// This needs some concrete finishing.
