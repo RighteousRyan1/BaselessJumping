@@ -100,32 +100,13 @@ namespace BaselessJumping.GameContent
         internal static void Draw()
         {
             Background.DrawBGs();
-            var X = Utilities.MouseX_TBC;
-            var Y = Utilities.MouseY_TBC;
-
-            var left = Block.Methods.GetValidBlock(X - 1, Y);
-            var right = Block.Methods.GetValidBlock(X + 1, Y);
-            var up = Block.Methods.GetValidBlock(X, Y - 1);
-            var down = Block.Methods.GetValidBlock(X, Y + 1);
-
-            bool getTopLeftCornerFrame()
-            {
-                bool checkLeft = left.FramingStyle == TileFraming.Top;
-                bool checkUp = up.FramingStyle == TileFraming.TopLeft;
-                bool checkDown = down.Active;
-                bool checkRight = right.FramingStyle == TileFraming.Middle;
-
-                return checkLeft && checkRight && checkUp && checkDown;
-            }
-            var c = Block.Methods.GetValidBlock(X, Y);
-            Utilities.DrawStringAtMouse($"l: {left.FramingStyle} | r: {right.FramingStyle} | d: {down.FramingStyle} | u: {up.FramingStyle} | c: {c.FramingStyle} -> {getTopLeftCornerFrame()}");
             foreach (var player in Player.AllPlayers)
                 player?.Draw();
             if (_showFPS)
             {
                 BJGame.spriteBatch.DrawString(BJGame.Fonts.Lato,
                             $"{Math.Round(1 / LastCapturedGameTime.ElapsedGameTime.TotalSeconds)}",
-                            new Vector2(0, Utilities.WindowHeight - 16), Color.White, 0f, Vector2.Zero, 0.35f, default, default);
+                            new(0, Utilities.WindowHeight - 16), Color.White, 0f, Vector2.Zero, 0.35f, default, default);
             }
             ChatText.DrawAllButtons();
             foreach (var b in Block.Blocks)
@@ -136,12 +117,14 @@ namespace BaselessJumping.GameContent
 
             var orig = BJGame.Fonts.SilkPixel.MeasureString(ChatText.curTypedText);
             var orig2 = new Vector2(0, orig.Y / 2);
-            BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, ChatText.curTypedText, new Vector2(20, Utilities.WindowHeight - 20), Color.White, 0f, orig2, 0.5f, default, 0f);
+            BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, ChatText.curTypedText, new(20, Utilities.WindowHeight - 20), Color.White, 0f, orig2, 0.5f, default, 0f);
         }
 
         internal static void Init()
         {
             Background.SetBackground(0);
+
+            Init_Players();
 
             Particle.defTexture = Content.Load<Texture2D>("Particle");
             foreach (var player in Player.AllPlayers)
@@ -161,9 +144,9 @@ namespace BaselessJumping.GameContent
 
         private static void Init_Players()
         {
-            PlayerOne = new(BJGame.Textures.WhitePixel);
-            PlayerOne.width = 25;
-            PlayerOne.height = 25;
+            PlayerOne = new();
+            PlayerOne.width = 75;
+            PlayerOne.height = 10;
             PlayerOne.position = new Vector2(500, 500);
         }
 

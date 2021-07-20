@@ -31,10 +31,10 @@ namespace BaselessJumping.GameContent
 
         public int width;
         public int height;
-        public int direction;
+        public int direction = 1;
 
-        private bool _canMoveLeft;
-        private bool _canMoveRight;
+        private bool _canMoveLeft = true;
+        private bool _canMoveRight = true;
         /*private bool _canMoveUp;
         private bool _canMoveDown;*/
 
@@ -43,23 +43,20 @@ namespace BaselessJumping.GameContent
         public Rectangle frame;
         private Color auraColor;
 
-        public Texture2D Texture { get; private set; }
-
-        internal Player(Texture2D texture)
+        internal Player()
         {
-            Texture = texture;
             AllPlayers.Add(this);
         }
 
         // private Rectangle FutureHitbox => new(Hitbox.X + (int)velocity.X, Hitbox.Y + (int)velocity.Y, width, height);
 
         private bool IsMoving => ControlLeft.IsPressed || ControlRight.IsPressed;
-        private bool _collideUnder;
 
         public void Update()
         {
-            UpdateVelocity();
-            UpdateTileCollision();
+            velocity.Y += 0.075f;
+
+            UpdateBlockCollision();
             UpdateMovement();
             UpdateRecieveAttack();
             UpdateTeam();
@@ -72,20 +69,42 @@ namespace BaselessJumping.GameContent
             oldVelocity = velocity;
             oldPosition = position;
         }
-        private void UpdateVelocity()
-        {
-            position += velocity;
-
-            velocity.Y += 0.075f;
-        }
-        private void UpdateTileCollision()
+        private void UpdateBlockCollision()
         {
             // Rectangle
             // Vector2
             // Vector3
             // Texture2D
 
-            var blockDown = Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 + 1);
+            var offset = velocity;
+
+            BoxCastInfo collisionInfo = new(); 
+
+            collisionInfo.tValue = 1f;
+
+            foreach (var block in Block.Blocks)
+            {
+                if (block != null)
+                {
+                    if (block.Active)
+                    {
+                        if (BoxCast(Hitbox, block.CollisionBox, velocity, out var info))
+                        {
+                            if (info.tValue < collisionInfo.tValue)
+                                collisionInfo = info;
+                        }
+                    }
+                }
+            }
+            position += velocity * collisionInfo.tValue;
+
+            if (collisionInfo.tValue < 1)
+            {
+                velocity -= Vector2.Dot(velocity, collisionInfo.normal) * collisionInfo.normal;
+
+            }
+
+            /*var blockDown = Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 + 1);
             var blockUp = Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 - 1);
             var blockLeft = Block.Methods.GetValidBlock((int)position.X / 16 - 1, (int)position.Y / 16);
             var blockRight = Block.Methods.GetValidBlock((int)position.X / 16 + 1, (int)position.Y / 16);
@@ -117,7 +136,7 @@ namespace BaselessJumping.GameContent
                 _canMoveRight = false;
                 if (velocity.X > 0)
                     velocity.X = 0;
-            }
+            }*/
 
             if (Input.MouseMiddle)
             {
@@ -133,7 +152,7 @@ namespace BaselessJumping.GameContent
         {
             if (ControlJump.JustPressed)
             {
-                // if (blockCollide)
+                if (velocity.Y == 0f)
                     velocity.Y -= 4f;
             }
             if (ControlRight.IsPressed && _canMoveRight)
@@ -181,8 +200,8 @@ namespace BaselessJumping.GameContent
         public void Draw()
         {
             var sb = BJGame.spriteBatch;
-            Draw_AuraPulsing();
-            sb.Draw(Texture, Hitbox, Color.White);
+            // Draw_AuraPulsing();
+            sb.Draw(BJGame.Textures.WhitePixel, Hitbox, Color.White);
             sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
         }
         private float _pulseScale;
@@ -195,7 +214,7 @@ namespace BaselessJumping.GameContent
         private void Draw_AuraPulsing()
         {
             var sb = BJGame.spriteBatch;
-            var texture = Texture;
+            var texture = BJGame.Textures.WhitePixel;
 
             if (_pulseCooldown > 0)
             {
@@ -222,6 +241,72 @@ namespace BaselessJumping.GameContent
         public override string ToString()
         {
             return $"vel: {velocity} | oldVel {oldVelocity} | pos: {position} | oldPos: {oldPosition} | Hitbox: {Hitbox}";
+        }
+
+        private struct BoxCastInfo
+        {
+            public float tValue;
+            public Vector2 normal;
+        }
+
+        private bool BoxCast(Rectangle movingBox, Rectangle testBox, Vector2 offset, out BoxCastInfo info)
+        {
+            info = new();
+            float horizontalT;
+            if (offset.X > 0)
+                horizontalT = (float)(testBox.Left - movingBox.Right) / (float)(offset.X);
+            else if (offset.X < 0)
+                horizontalT = (float)(testBox.Right - movingBox.Left) / (float)(offset.X);
+            else
+                horizontalT = -1.0f;
+
+            float verticalT;
+            if (offset.Y > 0)
+                verticalT = (float)(testBox.Top - movingBox.Bottom) / (float)(offset.Y);
+            else if (offset.Y < 0)
+                verticalT = (float)(testBox.Bottom - movingBox.Top) / (float)(offset.Y);
+            else
+                verticalT = -1.0f;
+
+            bool isHorizontal = true;
+            if (horizontalT < 0.0f)
+                isHorizontal = false;
+            if (horizontalT > 1.0f)
+                isHorizontal = false;
+            if (testBox.Top > movingBox.Bottom || testBox.Bottom < movingBox.Top)
+                isHorizontal = false;
+
+            bool isVertical = true;
+            if (verticalT < 0.0f)
+                isVertical = false;
+            if (verticalT > 1.0f)
+                isVertical = false;
+            if (testBox.Left > movingBox.Right || testBox.Right < movingBox.Left)
+                isVertical = false;
+
+            ChatText.NewText($"hor: {horizontalT} | vert: {verticalT} | isHor: {isHorizontal} | isVert: {isVertical}");
+
+            if (!isHorizontal && !isVertical)
+                return false;
+
+            if (!isVertical || (horizontalT < verticalT && isHorizontal))
+            {
+                info.tValue = horizontalT;
+                if (offset.X > 0)
+                    info.normal = new(-1.0f, 0.0f);
+                else
+                    info.normal = new(1.0f, 0.0f);
+            }
+            else
+            {
+                info.tValue = verticalT;
+                if (offset.Y > 0)
+                    info.normal = new(0.0f, -1.0f);
+                else
+                    info.normal = new(0.0f, 1.0f);
+            }
+            ChatText.NewText($"normal: {info.normal}");
+            return true;
         }
     }
 }
