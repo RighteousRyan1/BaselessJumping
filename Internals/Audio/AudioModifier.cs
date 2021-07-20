@@ -63,9 +63,6 @@ namespace BaselessJumping.Internals.Audio
 		}
 		public static float ApplyLowPassFilter(this SoundEffectInstance instance, ref float cutoff)
 		{
-			var m = new FAudio.FAudioFXReverbParameters();
-
-			m.Density = 1f;
 			cutoff = MathHelper.Clamp(cutoff, 0f, 100000f);
 			LowPassInfo?.Invoke(instance, new object[] { cutoff });
 			return cutoff;

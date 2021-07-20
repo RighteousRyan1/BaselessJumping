@@ -27,5 +27,9 @@ namespace BaselessJumping.Internals.Loaders
 
 			return files.ToArray();
         }
+		public static Texture2D GetTexture(string path)
+        {
+			return BJGame.Instance.Content.Load<Texture2D>(path);
+        }
 	}
 }

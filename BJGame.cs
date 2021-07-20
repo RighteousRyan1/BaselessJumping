@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using BaselessJumping.GameContent;
 using BaselessJumping.Internals.Common;
-using BaselessJumping.Internals.Common.Systems;
+using BaselessJumping.Internals.Common.GameInput;
 using BaselessJumping.Internals.Common.UI;
 using BaselessJumping.Localization;
 using Microsoft.Xna.Framework;
@@ -22,7 +22,7 @@ namespace BaselessJumping
 		public static SpriteBatch spriteBatch;
 		public readonly GraphicsDeviceManager GDManager;
 		public static string ProjectPath => Directory.GetCurrentDirectory();
-		public static string ExePath => Assembly.GetExecutingAssembly().Location.Replace(@"\BaselessJumping.dll", "");
+		public static string ExePath => Assembly.GetExecutingAssembly().Location.Replace(@$"\{nameof(GameContent.BaselessJumping)}.dll", "");
 		private static bool _displayMiscInfo;
 		private static bool _showBoundKeybinds;
 		public struct Fonts
@@ -79,6 +79,10 @@ namespace BaselessJumping
 			AssetsAndOtherInit();
 			GameContent.BaselessJumping.Init();
 			base.Initialize();
+        }
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+			GameContent.BaselessJumping.Exit();
         }
 
         protected override void LoadContent()

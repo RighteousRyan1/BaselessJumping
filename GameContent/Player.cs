@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using BaselessJumping.Internals.Common.Systems;
+using BaselessJumping.Internals.Common.GameInput;
 using Microsoft.Xna.Framework.Input;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Enums;
@@ -29,9 +29,10 @@ namespace BaselessJumping.GameContent
 
         public Vector2 Right => new(position.X + Hitbox.X, position.Y + (Hitbox.Y / 2));
 
-        public int width;
-        public int height;
+        public readonly int width;
+        public readonly int height;
         public int direction = 1;
+        private Texture2D texture;
 
         public bool IsCollidingFloor { get; private set; }
         public bool IsCollidingWallLeft { get; private set; }
@@ -46,8 +47,11 @@ namespace BaselessJumping.GameContent
         public Rectangle frame;
         private Color auraColor;
 
-        internal Player()
+        internal Player(Texture2D texture)
         {
+            width = texture.Width;
+            height = texture.Height;
+            this.texture = texture;
             AllPlayers.Add(this);
         }
 
@@ -202,8 +206,8 @@ namespace BaselessJumping.GameContent
         {
             var sb = BJGame.spriteBatch;
             DrawAura();
-            sb.Draw(BJGame.Textures.WhitePixel, Hitbox, Color.White);
-            sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
+            sb.Draw(texture, Hitbox, Color.White);
+            // sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
         }
         /// <summary>
         /// This needs some concrete finishing.
@@ -211,7 +215,6 @@ namespace BaselessJumping.GameContent
         private void DrawAura()
         {
             var sb = BJGame.spriteBatch;
-            var texture = BJGame.Textures.WhitePixel;
             sb.Draw(texture, position, frame, auraColor * 0.4f, 0f /* Maybe changed once player rotation is implemented. */, texture.Size() / 2, 1.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0f);
         }
 
@@ -222,8 +225,6 @@ namespace BaselessJumping.GameContent
             ControlDown = new("Down", Keys.S);
             ControlLeft = new("Left", Keys.A);
             ControlRight = new("Right", Keys.D);
-            width = 25;
-            height = 25;
         }
 
         public override string ToString()

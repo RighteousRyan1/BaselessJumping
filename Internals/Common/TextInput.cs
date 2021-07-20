@@ -1,4 +1,4 @@
-using BaselessJumping.Internals.Common.Systems;
+using BaselessJumping.Internals.Common.GameInput;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;

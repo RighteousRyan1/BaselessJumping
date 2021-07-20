@@ -10,19 +10,17 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using BaselessJumping.Internals.Common.Systems;
 using Microsoft.Xna.Framework.Content;
+using BaselessJumping.Internals.Loaders;
+using BaselessJumping.Internals.Common.GameInput;
+using BaselessJumping.Internals.Systems;
+using BaselessJumping.Internals;
 
 namespace BaselessJumping.GameContent
 {
     public class BaselessJumping
     {
-        public static bool ClickMiddle;
-        public static bool ClickLeft;
-        public static bool ClickRight;
-        public static ChatText mostRecentText;
         public static GameTime LastCapturedGameTime { get; internal set; }
-        public static event Action OnInitializeButtons;
         public static Background ForestBG = new("ForestBG");
         public static Background MountainsBG = new("MountainsBG");
         public static Background JungleBG = new("JungleBG");
@@ -30,6 +28,8 @@ namespace BaselessJumping.GameContent
         public static Keybind ViewAll = new("View All", Keys.J);
         public static Keybind InputHandle = new("InputHandle", Keys.L);
         public static Keybind ShowFPS = new("View FPS", Keys.F10);
+
+        public static Logger BaseLogger { get; } = new($"{BJGame.ExePath}", "client_logger");
 
         public static ContentManager Content => BJGame.Instance.Content;
 
@@ -123,14 +123,12 @@ namespace BaselessJumping.GameContent
         internal static void Init()
         {
             Background.SetBackground(0);
-
+            LoadableSystem.Load();
             Init_Players();
 
             Particle.defTexture = Content.Load<Texture2D>("Particle");
             foreach (var player in Player.AllPlayers)
-                player.Initialize();
-
-            Internal_InitButtons();
+                player?.Initialize();
 
             for (int i = 0; i < Utilities.WindowWidth / 16; i++)
             {
@@ -139,20 +137,15 @@ namespace BaselessJumping.GameContent
                     new Block(i, j, false, Color.White, true);
                 }
             }
-            // Init_Players();
         }
-
+        internal static void Exit()
+        {
+            LoadableSystem.Unload();
+        }
         private static void Init_Players()
         {
-            PlayerOne = new();
-            PlayerOne.width = 75;
-            PlayerOne.height = 10;
+            PlayerOne = new(TextureLoader.GetTexture("Particle"));
             PlayerOne.position = new Vector2(500, 500);
-        }
-
-        internal static void Internal_InitButtons()
-        {
-            OnInitializeButtons?.Invoke();
         }
         public static void TestingStuff_REMOVE_LATER_PLEASE()
         {
@@ -160,6 +153,18 @@ namespace BaselessJumping.GameContent
             if (Input.CurrentKeySnapshot.IsKeyDown(Keys.G))
             {
                 Particle.SpawnParticle(Utilities.MousePosition, new Vector2(0, 10).RotatedByRadians(i), Color.Red, 0.5f, 0f);
+            }
+
+            Stage stage = new("CustomStage");
+            if (Input.KeyJustPressed(Keys.Z))
+            {
+                BaseLogger.Write("Saving " + stage.Name + "...", Logger.WriteType.Info);
+                Stage.SaveStage(stage);
+            }
+            if (Input.KeyJustPressed(Keys.X))
+            {
+                BaseLogger.Write("Attempting to load " + stage.Name + "...", Logger.WriteType.Info);
+                Stage.LoadStage(stage);
             }
         }
     }
