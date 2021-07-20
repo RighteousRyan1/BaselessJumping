@@ -123,35 +123,35 @@ namespace BaselessJumping.GameContent
 
             bool getTopLeftCornerFrame()
             {
-                bool checkRight = right.FramingStyle == TileFraming.Middle || right.FramingStyle == TileFraming.Right || right.FramingStyle == TileFraming.TopRightCorner;
+                bool checkRight = right.Active; //right.FramingStyle == TileFraming.Middle || right.FramingStyle == TileFraming.Right || right.FramingStyle == TileFraming.TopRightCorner;
                 bool checkLeft = left.FramingStyle == TileFraming.Top || left.FramingStyle == TileFraming.TopLeft;
-                bool checkUp = up.FramingStyle == TileFraming.TopLeft;
+                bool checkUp = up.FramingStyle == TileFraming.TopLeft || up.FramingStyle == TileFraming.Left;
                 bool checkDown = down.Active;
                 return checkDown && checkUp && checkRight && checkLeft;
             }
             bool getTopRightCornerFrame()
             {
                 bool checkRight = right.FramingStyle == TileFraming.Top || right.FramingStyle == TileFraming.TopRight;
-                bool checkLeft = left.FramingStyle == TileFraming.Middle || left.FramingStyle == TileFraming.Left || left.FramingStyle == TileFraming.TopLeftCorner;
-                bool checkUp = up.FramingStyle == TileFraming.TopRight;
+                bool checkLeft = left.Active; //left.FramingStyle == TileFraming.Middle || left.FramingStyle == TileFraming.Left || left.FramingStyle == TileFraming.TopLeftCorner;
+                bool checkUp = up.FramingStyle == TileFraming.TopRight || up.FramingStyle == TileFraming.Right;
                 bool checkDown = down.Active;
 
                 return checkDown && checkUp && checkRight && checkLeft;
             }
             bool getBottomLeftCornerFrame()
             {
-                bool checkRight = right.FramingStyle == TileFraming.Middle || right.FramingStyle == TileFraming.Right || right.FramingStyle == TileFraming.BottomRightCorner;
+                bool checkRight = right.Active; // right.FramingStyle == TileFraming.Middle || right.FramingStyle == TileFraming.Right || right.FramingStyle == TileFraming.BottomRightCorner;
                 bool checkLeft = left.FramingStyle == TileFraming.Bottom || left.FramingStyle == TileFraming.BottomLeft;
                 bool checkUp = up.Active;
-                bool checkDown = down.FramingStyle == TileFraming.BottomLeft;
+                bool checkDown = down.FramingStyle == TileFraming.BottomLeft || down.FramingStyle == TileFraming.Left;
                 return checkDown && checkUp && checkRight && checkLeft;
             }
             bool getBottomRightCornerFrame()
             {
                 bool checkRight = right.FramingStyle == TileFraming.Bottom || right.FramingStyle == TileFraming.BottomRight;
-                bool checkLeft = left.FramingStyle == TileFraming.Middle || left.FramingStyle == TileFraming.Left || left.FramingStyle == TileFraming.BottomLeftCorner;
+                bool checkLeft = left.Active;//left.FramingStyle == TileFraming.Middle || left.FramingStyle == TileFraming.Left || left.FramingStyle == TileFraming.BottomLeftCorner;
                 bool checkUp = up.Active;
-                bool checkDown = down.FramingStyle == TileFraming.BottomRight;
+                bool checkDown = down.FramingStyle == TileFraming.BottomRight || down.FramingStyle == TileFraming.Right;
 
                 return checkDown && checkUp && checkRight && checkLeft;
             }
@@ -159,8 +159,8 @@ namespace BaselessJumping.GameContent
             {
                 bool checkRight = right.FramingStyle == TileFraming.FacingRight;
                 bool checkLeft = left.Active;
-                bool checkUp = up.FramingStyle == TileFraming.TopRight;
-                bool checkDown = down.FramingStyle == TileFraming.BottomRight;
+                bool checkUp = up.Active; // up.FramingStyle == TileFraming.TopRight;
+                bool checkDown = down.Active; // down.FramingStyle == TileFraming.BottomRight;
 
                 return checkDown && checkUp && checkRight && checkLeft;
             }
@@ -168,26 +168,26 @@ namespace BaselessJumping.GameContent
             {
                 bool checkLeft = left.FramingStyle == TileFraming.FacingLeft;
                 bool checkRight = right.Active;
-                bool checkUp = up.FramingStyle == TileFraming.TopLeft;
-                bool checkDown = down.FramingStyle == TileFraming.BottomLeft;
+                bool checkUp = up.Active; //up.FramingStyle == TileFraming.TopLeft;
+                bool checkDown = down.Active; //down.FramingStyle == TileFraming.BottomLeft;
 
                 return checkDown && checkUp && checkRight && checkLeft;
             }
             bool getUpLeftRightFrame()
             {
-                bool checkLeft = left.FramingStyle == TileFraming.TopLeft;
+                bool checkLeft = left.Active;//left.FramingStyle == TileFraming.TopLeft;
                 bool checkDown = down.Active;
                 bool checkUp = up.FramingStyle == TileFraming.Up;
-                bool checkRight = right.FramingStyle == TileFraming.TopRight;
+                bool checkRight = right.Active; //right.FramingStyle == TileFraming.TopRight;
 
                 return checkDown && checkUp && checkRight && checkLeft;
             }
             bool getDownLeftRightFrame()
             {
-                bool checkLeft = left.FramingStyle == TileFraming.BottomLeft;
+                bool checkLeft = left.Active;//left.FramingStyle == TileFraming.BottomLeft;
                 bool checkDown = down.FramingStyle == TileFraming.Down;
                 bool checkUp = up.Active;
-                bool checkRight = right.FramingStyle == TileFraming.BottomRight;
+                bool checkRight = right.Active;//right.FramingStyle == TileFraming.BottomRight;
 
                 return checkDown && checkUp && checkRight && checkLeft;
             }

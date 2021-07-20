@@ -9,6 +9,15 @@ namespace BaselessJumping.Internals.Common
 {
     public static class Utilities
     {
+        private static Vector2 _oldMousePos;
+        public static Vector2 GetMouseVelocity()
+        {
+            var pos = MousePosition;
+            var diff = pos - _oldMousePos;
+            _oldMousePos = pos;
+
+            return diff;
+        }
         public static float GetRotationVectorOf(Vector2 initial, Vector2 target) => (target - initial).ToRotation();
         public static float ToRotation(this Vector2 vector)
         {

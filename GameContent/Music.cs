@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Audio;
+using System;
 
 namespace BaselessJumping.GameContent
 {
@@ -16,8 +17,6 @@ namespace BaselessJumping.GameContent
     public class Music
     {
         public static List<Music> AllMusic { get; internal set; } = new();
-        private bool _justStopped;
-        public bool _justBegan;
         public static int CurrentMusicTrack { get; private set; }
 
         public int whoAmI;
@@ -37,17 +36,16 @@ namespace BaselessJumping.GameContent
         }
         public static Music CreateMusicTrack(string musicPath, bool roughTransition)
         {
-            return new Music(musicPath, roughTransition);
+            return new(musicPath, roughTransition);
         }
         public void Play()
         {
             CurrentMusicTrack = whoAmI;
-            _justBegan = true;
             if (roughTransition)
                 _instance?.Play();
             else
                 volume = 0f;
-
+            OnBegin?.Invoke(this, new());
         }
         public void Pause()
         {
@@ -56,9 +54,9 @@ namespace BaselessJumping.GameContent
         }
         public void Stop()
         {
-            _justStopped = true;
             if (!roughTransition)
                 _instance?.Stop();
+            OnStop?.Invoke(this, new());
         }
         internal void Update()
         {
@@ -90,9 +88,8 @@ namespace BaselessJumping.GameContent
                         volume = 1f;
                 }
             }
-
-            _justStopped = false;
-            _justBegan = false;
         }
+        public event EventHandler OnBegin;
+        public event EventHandler OnStop;
     }
 }
