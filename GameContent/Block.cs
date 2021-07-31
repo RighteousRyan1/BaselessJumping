@@ -3,6 +3,7 @@ using BaselessJumping.Enums;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Internals.Loaders;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
@@ -46,7 +47,7 @@ namespace BaselessJumping.GameContent
             }
         }
 
-        public Texture2D texture;
+        public Texture2D texture = Resources.GetResourceBJ<Texture2D>("GrassBlock");
 
         public Vector2 Center => new(xWorld + CollisionBox.Width / 2, CollisionBox.Y + CollisionBox.Height / 2);
         public Vector2 Top => new(xWorld + (CollisionBox.Width / 2), yWorld);
@@ -78,7 +79,7 @@ namespace BaselessJumping.GameContent
 
                 block.Active = false;
 
-                SoundPlayer.PlaySoundInstance(BJGame.Sounds.BlockBreak, 0.1f);
+                SoundPlayer.PlaySoundInstance(Resources.GetResourceBJ<SoundEffect>("BlockBreak"), 0.1f);
             }
             public static Block GetValidBlock(int i, int j)
             {
@@ -137,10 +138,9 @@ namespace BaselessJumping.GameContent
                 switch (id)
                 {
                     case 1:
-                        texture = BJGame.Textures.GrassBlockTexture;
+                        texture = Resources.GetResourceBJ<Texture2D>("GrassBlock");
                         break;
                 }
-                ChatText.NewText("Created");
             }
         }
         private TileFraming UpdateBlock_GetAutoFraming()
@@ -502,7 +502,7 @@ namespace BaselessJumping.GameContent
                         break;
                 }
             }
-            BJGame.spriteBatch.Draw(BJGame.Textures.GrassBlockTexture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
+            BJGame.spriteBatch.Draw(texture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
                 // BJGame.spriteBatch.DrawString(BJGame.Fonts.Amatic, "X", Right, Color.White, 0f, Vector2.Zero, 0.5f, default, default);
         }
         public override string ToString()

@@ -7,13 +7,14 @@ using BaselessJumping.Internals.Common.GameInput;
 using Microsoft.Xna.Framework.Input;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Enums;
+using BaselessJumping.Internals.Common.Utilities;
 
 namespace BaselessJumping.GameContent
 {
     // TODO: Get Players to work
     public sealed class Player : Entity
     {
-        public static List<Player> AllPlayers { get; set; } = new();
+        public static List<Player> AllPlayers { get; } = new();
 
         public Keybind ControlDown { get; set; }
         public Keybind ControlUp { get; set; }
@@ -33,6 +34,7 @@ namespace BaselessJumping.GameContent
         public readonly int height;
         public int direction = 1;
         private Texture2D texture;
+        public float gravity = 1f;
 
         public bool IsCollidingFloor { get; private set; }
         public bool IsCollidingWallLeft { get; private set; }
@@ -59,7 +61,7 @@ namespace BaselessJumping.GameContent
 
         public void Update()
         {
-            velocity.Y += 0.1f;
+            velocity.Y += 0.1f * gravity;
 
             UpdateBlockCollision();
             UpdateMovement();
@@ -68,7 +70,7 @@ namespace BaselessJumping.GameContent
 
             Hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
 
-            if (!Hitbox.Intersects(new(-50, -50, Utilities.WindowWidth + 100, Utilities.WindowHeight + 100)))
+            if (!Hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100)))
                 velocity = Vector2.Zero;
 
             oldVelocity = velocity;
@@ -151,8 +153,8 @@ namespace BaselessJumping.GameContent
             }
             if (Input.MouseMiddle)
             {
-                position = Utilities.MousePosition;
-                velocity = Utilities.GetMouseVelocity();
+                position = GameUtils.MousePosition;
+                velocity = GameUtils.GetMouseVelocity();
             }
         }
         private void UpdateRecieveAttack()

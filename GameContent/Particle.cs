@@ -1,4 +1,6 @@
 using BaselessJumping.Internals.Common;
+using BaselessJumping.Internals.Common.Utilities;
+using BaselessJumping.Internals.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -23,6 +25,7 @@ namespace BaselessJumping.GameContent
 
         private Particle()
         {
+            defTexture = BJGame.Instance.Content.GetResource<Texture2D>("Particle");
             current_notNull_particles++;
             id = current_notNull_particles;
             active = true;

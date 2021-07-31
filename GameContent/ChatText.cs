@@ -1,4 +1,5 @@
 using BaselessJumping.Internals.Common;
+using BaselessJumping.Internals.Common.Utilities;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
@@ -14,7 +15,7 @@ namespace BaselessJumping.GameContent
         // I hate myself
         public static bool displayAllChatTexts;
         public static string curTypedText = string.Empty;
-        public static List<ChatText> TotalTexts { get; private set; } = new();
+        public static List<ChatText> TotalTexts { get; } = new();
         private ChatText(string text, Color color, int timeLeft = 300)
         {
             this.text = text;
@@ -49,7 +50,7 @@ namespace BaselessJumping.GameContent
                 {
                     var orig = BJGame.Fonts.SilkPixel.MeasureString(txt.text);
                     var orig2 = new Vector2(0, orig.Y / 2);
-                    BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, txt.text, new Vector2(20, Utilities.WindowHeight - 40 - (20 * i)), txt.color, 0f, orig2, 0.5f, default, 0f);
+                    BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, txt.text, new Vector2(20, GameUtils.WindowHeight - 40 - (20 * i)), txt.color, 0f, orig2, 0.5f, default, 0f);
                     i++;
                 }
             }

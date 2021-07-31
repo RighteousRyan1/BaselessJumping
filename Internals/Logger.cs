@@ -1,18 +1,22 @@
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
+using System;
 
 namespace BaselessJumping.Internals
 {
     // TODO: Finish Logger
-    public sealed class Logger
+    public sealed class Logger : IDisposable
     {
         private readonly string writeTo;
         public string Name { get; }
 
         private readonly Assembly assembly;
 
-        public enum WriteType
+        private static FileStream fStream;
+        private static StreamWriter sWriter;
+
+        public enum LogType
         {
             Info,
             Warn,
@@ -25,14 +29,23 @@ namespace BaselessJumping.Internals
             assembly = Assembly.GetExecutingAssembly();
             Name = name;
             writeTo = writeFile;
+
+            string withName = Path.Combine(writeFile, $"{name}.log");
+
+            fStream = new(withName, FileMode.OpenOrCreate);
+            sWriter = new(fStream);
         }
-        public void Write(object write, WriteType writeType)
+        public void Write(object write, LogType writeType)
         {
-            string withName = Path.Combine(writeTo, $"{Name}.log");
-            using var stream = new StreamWriter(withName);
-            stream.WriteLine($"[{assembly.GetName().Name}] [{writeType}]: {write}");
-            // File.WriteAllLines(withName, new string[] { $"[{assembly.GetName().Name}] [{writeType}]: {write}" });
-            Debug.WriteLine($"[{assembly.GetName().Name}] [{writeType}]: {write}");
+            string str = $"[{assembly.GetName().Name}] [{writeType}]: {write}";
+            sWriter.WriteLine(str);
+            Debug.WriteLine(str);
+        }
+
+        public void Dispose()
+        {
+            sWriter?.Dispose();
+            fStream?.Dispose();
         }
     }
 }

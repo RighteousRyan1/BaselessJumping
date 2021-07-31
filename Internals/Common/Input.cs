@@ -1,3 +1,4 @@
+using BaselessJumping.Internals.Common.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -31,13 +32,13 @@ namespace BaselessJumping.Internals.Common
         {
             bool clicked = !rightClick ? (CurrentMouseSnapshot.LeftButton == ButtonState.Pressed && OldMouseSnapshot.LeftButton == ButtonState.Released)
                 : (CurrentMouseSnapshot.RightButton == ButtonState.Pressed && OldMouseSnapshot.RightButton == ButtonState.Released);
-            return Utilities.WindowActive ? clicked : false;
+            return GameUtils.WindowActive ? clicked : false;
         }
         public static bool CanDetectClickRelease(bool rightClick = false)
         {
             bool released = !rightClick ? (CurrentMouseSnapshot.LeftButton != ButtonState.Pressed && OldMouseSnapshot.LeftButton != ButtonState.Released)
                 : (CurrentMouseSnapshot.RightButton != ButtonState.Pressed && OldMouseSnapshot.RightButton != ButtonState.Released);
-            return Utilities.WindowActive ? released : false;
+            return GameUtils.WindowActive ? released : false;
         }
         public static Keys FirstPressedKey
         {

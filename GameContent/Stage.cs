@@ -8,6 +8,7 @@ namespace BaselessJumping.GameContent
 {
     public class Stage
     {
+        // TODO: Finish IO
         public Stage(string name) => Name = name;
         public string Name { get; set; }
 

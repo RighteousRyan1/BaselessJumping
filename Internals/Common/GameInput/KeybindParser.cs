@@ -22,6 +22,20 @@ namespace BaselessJumping.Internals.Common.GameInput
             9,
             0,
         };
+
+        public static bool IsNum(this Keys key, out int num)
+        {
+            num = -1;
+            foreach (var number in nums)
+            {
+                if (key.ToString() == $"D{number}")
+                {
+                    num = number;
+                    return true;
+                }
+            }
+            return false;
+        }
         public static string ParseKey(this Keys key)
         {
             foreach (var num in nums)

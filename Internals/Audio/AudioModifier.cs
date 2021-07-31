@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using BaselessJumping.Internals.Common;
+using BaselessJumping.Internals.Common.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 
@@ -69,9 +70,6 @@ namespace BaselessJumping.Internals.Audio
 		}
 		public static float ApplyLowPassFilter(this SoundEffectInstance instance, float cutoff)
 		{
-			var m = new FAudio.FAudioFXReverbParameters();
-
-			m.Density = 1f;
 			cutoff = MathHelper.Clamp(cutoff, 0f, 100000f);
 			LowPassInfo?.Invoke(instance, new object[] { cutoff });
 			return cutoff;
@@ -118,24 +116,24 @@ namespace BaselessJumping.Internals.Audio
 
 		public static float GetPanFrom(Vector2 initial, Vector2 target)
         {
-			return -initial.DistanceFrom(target).X * 2 / Utilities.WindowWidth;
+			return -initial.DistanceFrom(target).X * 2 / GameUtils.WindowWidth;
         }
 		public static float GetOcclusionFrom(Vector2 initial, Vector2 target, bool applyScreenCentering = true)
         {
-			return applyScreenCentering ? 0.5f + initial.DistanceFrom(target).Y / Utilities.WindowHeight
-				: initial.DistanceFrom(target).Y / Utilities.WindowHeight;
+			return applyScreenCentering ? 0.5f + initial.DistanceFrom(target).Y / GameUtils.WindowHeight
+				: initial.DistanceFrom(target).Y / GameUtils.WindowHeight;
 		}
 		public static float GetVolumeFrom(Vector2 initial, Vector2 target)
 		{
-			return 1f - Math.Abs(initial.DistanceFrom(target).Length()) / Utilities.WindowWidth;
+			return 1f - Math.Abs(initial.DistanceFrom(target).Length()) / GameUtils.WindowWidth;
 		}
 		public static float GetHighPassFrom(Vector2 initial, Vector2 target)
 		{
-			return MathHelper.Clamp(-initial.DistanceFrom(target).Y, 0, -initial.DistanceFrom(target).Y) / Utilities.WindowCenter.Y;
+			return MathHelper.Clamp(-initial.DistanceFrom(target).Y, 0, -initial.DistanceFrom(target).Y) / GameUtils.WindowCenter.Y;
 		}
 		public static float GetLowPassFrom(Vector2 initial, Vector2 target)
 		{
-			return MathHelper.Clamp(-initial.DistanceFrom(target).Y, 0, -initial.DistanceFrom(target).Y) / -Utilities.WindowCenter.Y;
+			return MathHelper.Clamp(-initial.DistanceFrom(target).Y, 0, -initial.DistanceFrom(target).Y) / -GameUtils.WindowCenter.Y;
 		}
 
 		public static void Update()

@@ -2,12 +2,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using BaselessJumping.Internals.Common;
+using BaselessJumping.Internals.Common.Utilities;
+using BaselessJumping.Internals.Loaders;
 
 namespace BaselessJumping.GameContent
 {
     public sealed class Background
     {
-        public static List<Background> Backgrounds { get; private set; } = new();
+        public static List<Background> Backgrounds { get; } = new();
         public static float fadeSpeed = 0.01f;
 
         public float Alpha { get; private set; }
@@ -20,7 +22,7 @@ namespace BaselessJumping.GameContent
         public Background(string texturePath)
         {
             id = Backgrounds.Count;
-            Texture = BJGame.Instance.Content.Load<Texture2D>(texturePath);
+            Texture = BJGame.Instance.Content.GetResource<Texture2D>(texturePath);
 
             Backgrounds.Add(this);
         }
@@ -53,7 +55,7 @@ namespace BaselessJumping.GameContent
             {
                 if (currentBGId == bg.id)
                 {
-                    BJGame.spriteBatch.Draw(bg.Texture, new Rectangle(0, 0, Utilities.WindowWidth, Utilities.WindowHeight), Color.White * bg.Alpha);
+                    BJGame.spriteBatch.Draw(bg.Texture, new Rectangle(0, 0, GameUtils.WindowWidth, GameUtils.WindowHeight), Color.White * bg.Alpha);
                 }
             }
         }
@@ -63,8 +65,8 @@ namespace BaselessJumping.GameContent
         /// <param name="id"></param>
         public static void SetBackground(int id)
         {
-            if (id > Backgrounds.Count)
-                throw new KeyNotFoundException($"'{nameof(Backgrounds)}' does not contain any background ID matching '{id}'.");
+            if (id >= Backgrounds.Count)
+                currentBGId = Backgrounds.Count - 1;
             else
                 currentBGId = id;
         }
