@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.Loaders;
+using BaselessJumping.Internals;
 
 namespace BaselessJumping.GameContent
 {
@@ -51,6 +52,8 @@ namespace BaselessJumping.GameContent
         }
         public static void DrawBGs()
         {
+            if (!IngameConsole.CommandValues.DrawBackgrounds)
+                return;
             foreach (var bg in Backgrounds)
             {
                 if (currentBGId == bg.id)

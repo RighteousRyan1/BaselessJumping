@@ -97,9 +97,7 @@ namespace BaselessJumping
 		protected override void Update(GameTime gameTime)
         {
 			Input.HandleInput();
-			TextInput.TrackInputKeys();
 			GameContent.BaselessJumping.LastCapturedGameTime = gameTime;
-			ChatText.curTypedText = TextInput.InputtedText;
 			if (Input.KeyJustPressed(Keys.Delete))
 				Console.Clear();
 			if (Input.KeyJustPressed(Keys.Insert))
@@ -133,7 +131,6 @@ namespace BaselessJumping
 					len += font.MeasureString(infos.Name).Y * scale;
 					i++;
 				}
-				spriteBatch.DrawString(Fonts.Lato, $"Text: {TextInput.InputtedText}  ({Input.FirstPressedKey.ParseKey()})", new Vector2(6, 15 * i), Color.White, 0f, Vector2.Zero, 0.35f, default, default);
 			}
 			if (_showBoundKeybinds)
 			{

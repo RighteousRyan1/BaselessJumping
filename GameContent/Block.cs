@@ -14,7 +14,6 @@ namespace BaselessJumping.GameContent
         public static Block[,] Blocks = new Block[1000, 1000];
 
         public int id;
-
         private int _oldId;
 
         public const int MAX_BLOCKS = 16000;
@@ -124,10 +123,9 @@ namespace BaselessJumping.GameContent
         internal void Update()
         {
             Update_PerType();
+            FramingStyle = UpdateBlock_GetAutoFraming();
             xWorld = X * 16;
             yWorld = Y * 16;
-
-            FramingStyle = UpdateBlock_GetAutoFraming();
         }
         private void Update_PerType()
         {
@@ -139,6 +137,9 @@ namespace BaselessJumping.GameContent
                 {
                     case 1:
                         texture = Resources.GetResourceBJ<Texture2D>("GrassBlock");
+                        break;
+                    case 2:
+                        texture = Resources.GetResourceBJ<Texture2D>("StoneBlock");
                         break;
                 }
             }
@@ -412,6 +413,8 @@ namespace BaselessJumping.GameContent
 
         public void Draw()
         {
+            if (!Active)
+                return;
             var frame = new Rectangle();
             if (Active)
             {
@@ -508,6 +511,15 @@ namespace BaselessJumping.GameContent
         public override string ToString()
         {
             return $"X: {X} | Y: {Y} | xW: {xWorld} | yW: {yWorld} | HasCollision: {HasCollision} | color: {Color}";
+        }
+
+        public static Block Get(int x, int y) => Blocks[x, y];
+        public static Block Get(float x, float y) => Blocks[(int)x, (int)y];
+
+        public static class ID
+        {
+            public const int Grass = 1;
+            public const int Stone = 2;
         }
     }
 }

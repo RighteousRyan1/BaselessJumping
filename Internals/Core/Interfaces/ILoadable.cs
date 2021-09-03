@@ -1,5 +1,3 @@
-using System;
-
 namespace BaselessJumping.Internals.Core.Interfaces
 {
     public interface ILoadable

@@ -20,6 +20,7 @@ using BaselessJumping.Internals.Audio;
 using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.UI;
 using BaselessJumping.Internals.Common.GameUI;
+using BaselessJumping.MapGeneration;
 
 namespace BaselessJumping.GameContent
 {
@@ -44,39 +45,27 @@ namespace BaselessJumping.GameContent
         public static Player PlayerOne { get; private set; }
         private static bool _showFPS;
 
+        public static GenPattern testPattern = new(100, 400, 5, 5, 5, 8, 8);
         internal static void Update()
         {
+            if (Input.KeyJustPressed(Keys.G))
+                testPattern.Generate();
+
             foreach (var bind in Keybind.AllKeybinds)
-                bind.Update();
+                bind?.Update();
             foreach (var parent in UIParent.TotalParents)
-                parent.UpdateElements();
+                parent?.UpdateElements();
             foreach (var music in Music.AllMusic)
                 music?.Update();
             Background.UpdateBGs();
             foreach (var player in Player.AllPlayers)
-                player.Update();
+                player?.Update();
             foreach (var booster in BoosterPad.BoosterPads)
                 booster?.Update();
             if (ShowFPS.JustPressed)
                 _showFPS = !_showFPS;
             if (ViewAll.JustPressed)
                 ChatText.displayAllChatTexts = !ChatText.displayAllChatTexts;
-            if (InputHandle.JustPressed)
-            {
-                if (!TextInput.trackingInput)
-                {
-                    ChatText.NewText("Input started...");
-                    TextInput.BeginInput();
-                }
-                else
-                {
-                    ChatText.NewText("Input ended...");
-                    TextInput.EndInput(() =>
-                    {
-                        ChatText.NewText(TextInput.InputtedText);
-                    });
-                }
-            }
             foreach (var b in Block.Blocks)
                 b?.Update();
             foreach (var p in Particle.particles)
@@ -86,9 +75,10 @@ namespace BaselessJumping.GameContent
 
             if (BJGame.Instance.IsActive)
             {
+                int type = Input.DeltaScrollWheel + 1;
                 if (Input.MouseLeft && GameUtils.MouseOnScreenProtected)
                 {
-                    Block.Methods.PlaceBlock(GameUtils.MouseX_TBC, GameUtils.MouseY_TBC, 1);
+                    Block.Methods.PlaceBlock(GameUtils.MouseX_TBC, GameUtils.MouseY_TBC, type);
                 }
                 if (Input.MouseRight && GameUtils.MouseOnScreenProtected)
                 {
@@ -131,18 +121,13 @@ namespace BaselessJumping.GameContent
             foreach (var p in Particle.particles)
                 p?.Draw();
             foreach (var parent in UIParent.TotalParents)
-                parent.DrawElements();
+                parent?.DrawElements();
             ChatText.DrawAllButtons();
             var orig = BJGame.Fonts.SilkPixel.MeasureString(ChatText.curTypedText);
             var orig2 = new Vector2(0, orig.Y / 2);
-
+            GameUtils.DrawStringAtMouse(IngameConsole.curWritten + $"\n\n{Input.DeltaScrollWheel + 1}");
             BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, ChatText.curTypedText, new(20, GameUtils.WindowHeight - 20), Color.White, 0f, orig2, 0.5f, default, 0f);
-
-            Draw_TestingStuff_REMOVE_LATER_PLEASE();
         }
-        public static UIParent PIngameUI = new();
-
-        static TextButton button = new("Test Text", BJGame.Fonts.Amatic, Color.White, new(100, 100), null, PIngameUI);
         internal static void Init()
         {
             #region GameContent Init
@@ -154,9 +139,9 @@ namespace BaselessJumping.GameContent
                 BoosterPad.Create((BoosterPad.BoosterPadDirection)i, new((i * 100) + 500, 500), 0.25f, Color.White, Color.White);
             }
             Init_Players();
+            IngameConsole.Init();
             foreach (var player in Player.AllPlayers)
                 player?.Initialize();
-
             for (int i = 0; i < GameUtils.WindowWidth / 16; i++)
             {
                 for (int j = 0; j < GameUtils.WindowHeight / 16; j++)
@@ -164,10 +149,6 @@ namespace BaselessJumping.GameContent
                     new Block(i, j, false, Color.White, true);
                 }
             }
-            #endregion
-            #region UI Init
-
-            PIngameUI.AppendElement(button);
             #endregion
         }
         internal static void Exit()
@@ -182,11 +163,6 @@ namespace BaselessJumping.GameContent
         public static void Update_TestingStuff_REMOVE_LATER_PLEASE()
         {
             //new UIParent().AppendElement(new TextButton("", BJGame.Fonts.Amatic, new(), new(), null));
-            var i = (float)Math.Sin(LastCapturedGameTime.TotalGameTime.TotalSeconds);
-            if (Input.CurrentKeySnapshot.IsKeyDown(Keys.G))
-            {
-                Particle.SpawnParticle(GameUtils.MousePosition, new Vector2(0, 10).RotatedByRadians(i), Color.Red, 0.5f, 0f);
-            }
 
             Stage stage = new("CustomStage");
             if (Input.KeyJustPressed(Keys.Z))
@@ -200,14 +176,14 @@ namespace BaselessJumping.GameContent
                 Stage.LoadStage(stage);
             }
 
+            if (Input.KeyJustPressed(Keys.OemTilde))
+            {
+                IngameConsole.Enabled = !IngameConsole.Enabled;
+            }
             if (Input.FirstPressedKey.IsNum(out int num))
             {
                 Background.SetBackground(num);
             }
-        }
-        public static void Draw_TestingStuff_REMOVE_LATER_PLEASE()
-        {
-            GameUtils.DrawStringAtMouse(button.ShouldDraw);
         }
     }
 }

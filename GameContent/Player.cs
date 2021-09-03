@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Enums;
 using BaselessJumping.Internals.Common.Utilities;
+using BaselessJumping.Internals;
 
 namespace BaselessJumping.GameContent
 {
@@ -15,6 +16,9 @@ namespace BaselessJumping.GameContent
     public sealed class Player : Entity
     {
         public static List<Player> AllPlayers { get; } = new();
+
+        public Item HeldItem { get; private set; }
+        public Item[] inventory = new Item[3];
 
         public Keybind ControlDown { get; set; }
         public Keybind ControlUp { get; set; }
@@ -132,7 +136,7 @@ namespace BaselessJumping.GameContent
                     IsCollidingCeiling = true;
                     IsColliding = true;
                 }
-                if (collisionInfo.normal.Y < 0)
+                if (velocity.Y == 0f)
                 {
                     // floor
                     IsCollidingFloor = true;
@@ -183,7 +187,25 @@ namespace BaselessJumping.GameContent
                 }
             }
             if (IsCollidingFloor && !IsMoving && velocity.Y == 0)
-                velocity.X *= 0.35f;
+            {
+                try
+                {
+                    var fric = IngameConsole.phys_playerfriction.Value;
+                    switch (OnBlockType)
+                    {
+                        case Block.ID.Grass:
+                            velocity.X *= 0.92f * fric;
+                            break;
+                        case Block.ID.Stone:
+                            velocity.X *= 0.85f * fric;
+                            break;
+                    }
+                }
+                catch
+                {
+                    IngameConsole.phys_playerfriction.Value = 1f;
+                }
+            }
         }
         private void UpdateTeam()
         {
@@ -213,18 +235,9 @@ namespace BaselessJumping.GameContent
         public void Draw()
         {
             var sb = BJGame.spriteBatch;
-            DrawAura();
             sb.Draw(texture, Hitbox, Color.White);
             // sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
             sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
-        }
-        /// <summary>
-        /// This needs some concrete finishing.
-        /// </summary>
-        private void DrawAura()
-        {
-            var sb = BJGame.spriteBatch;
-            sb.Draw(texture, position, frame, auraColor * 0.4f, 0f /* Maybe changed once player rotation is implemented. */, texture.Size() / 2, 1.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0f);
         }
 
         public void Initialize()
