@@ -27,7 +27,7 @@ namespace BaselessJumping.GameContent
 
         public static void TestDraw()
         {
-            float sin = (float)Math.Sin(BaselessJumping.LastCapturedGameTime.TotalGameTime.TotalSeconds);
+            float sin = (float)Math.Sin(GameManager.LastCapturedGameTime.TotalGameTime.TotalSeconds);
             vertices[0] = new VertexPositionColor(new Vector3(0, 1 + sin / 5, 0), Color.Red);
             vertices[1] = new VertexPositionColor(new Vector3(0.5f + sin / 5, 0, 0), Color.Green);
             vertices[2] = new VertexPositionColor(new Vector3(-0.5f + sin / 5, 0, 0), Color.Blue);

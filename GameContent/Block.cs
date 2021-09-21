@@ -17,7 +17,7 @@ namespace BaselessJumping.GameContent
         private int _oldId;
 
         public const int MAX_BLOCKS = 16000;
-        internal readonly int amount_current_blocks = 0;
+        private readonly int amount_current_blocks = 0;
 
         public bool Active { get; internal set; }
         public Color Color { get; set; }
@@ -29,8 +29,8 @@ namespace BaselessJumping.GameContent
 
         public TileFraming FramingStyle { get; private set; }
 
-        public int xWorld;
-        public int yWorld;
+        private int xWorld;
+        private int yWorld;
 
         private bool JustCreated
         {
@@ -46,7 +46,7 @@ namespace BaselessJumping.GameContent
             }
         }
 
-        public Texture2D texture = Resources.GetResourceBJ<Texture2D>("GrassBlock");
+        public Texture2D texture = Resources.GetGameResource<Texture2D>("GrassBlock");
 
         public Vector2 Center => new(xWorld + CollisionBox.Width / 2, CollisionBox.Y + CollisionBox.Height / 2);
         public Vector2 Top => new(xWorld + (CollisionBox.Width / 2), yWorld);
@@ -78,7 +78,7 @@ namespace BaselessJumping.GameContent
 
                 block.Active = false;
 
-                SoundPlayer.PlaySoundInstance(Resources.GetResourceBJ<SoundEffect>("BlockBreak"), 0.1f);
+                SoundPlayer.PlaySoundInstance(Resources.GetGameResource<SoundEffect>("BlockBreak"), 0.1f);
             }
             public static Block GetValidBlock(int i, int j)
             {
@@ -93,6 +93,24 @@ namespace BaselessJumping.GameContent
                 {
                     return new(0, 0, false, default, false);
                 }
+                return Blocks[i, j];
+            }
+            public static Block GetValidBlock(int i, int j, out bool inMap)
+            {
+                try
+                {
+                    if (Blocks[i, j] == null)
+                    {
+                        inMap = false;
+                        return new(0, 0, false, default, false);
+                    }
+                }
+                catch
+                {
+                    inMap = false;
+                    return new(0, 0, false, default, false);
+                }
+                inMap = true;
                 return Blocks[i, j];
             }
             public static Block GetActiveBlock(int i, int j)
@@ -133,15 +151,12 @@ namespace BaselessJumping.GameContent
                 id = 0;
             if (JustCreated)
             {
-                switch (id)
+                texture = id switch
                 {
-                    case 1:
-                        texture = Resources.GetResourceBJ<Texture2D>("GrassBlock");
-                        break;
-                    case 2:
-                        texture = Resources.GetResourceBJ<Texture2D>("StoneBlock");
-                        break;
-                }
+                    1 => Resources.GetGameResource<Texture2D>("GrassBlock"),
+                    2 => Resources.GetGameResource<Texture2D>("StoneBlock"),
+                    _ => Resources.GetGameResource<Texture2D>("Block_Missing"),
+                };
             }
         }
         private TileFraming UpdateBlock_GetAutoFraming()
@@ -518,6 +533,7 @@ namespace BaselessJumping.GameContent
 
         public static class ID
         {
+            public const int Count = 2;
             public const int Grass = 1;
             public const int Stone = 2;
         }

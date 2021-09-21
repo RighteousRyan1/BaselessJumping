@@ -1,3 +1,4 @@
+using BaselessJumping.Internals.Common;
 using BaselessJumping.Internals.Core.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -6,41 +7,64 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using TextCopy;
 
 namespace BaselessJumping.Internals
 {
     public class IngameConsole
     {
-        // public static TextInputEXT inputter;
-        public static string curWritten = "";
+        public static List<string> MatchedStrings { get; private set; } = new();
+
+        public static Rectangle WritingBox { get; } = new(20, 20, 100, 100);
+        public static string CurrentlyWrittenText { get; set; } = "";
         public static bool Enabled { get; set; }
         // clientside too
 
-        public static SettableKeyValuePair<string, int> server_cheats = new("server_cheats", 0);
-        public static SettableKeyValuePair<string, int> draw_backgrounds = new("draw_backgrounds", 1);
-        public static SettableKeyValuePair<string, float> phys_playerfriction = new("phys_playerfriction", 1f);
-        public static class CommandValues
-        {
-            public static bool DrawBackgrounds { get; internal set; }
-        }
-        public static void SubmitCommand(string command, object arg)
+        #region Cheats
+        public static ConsoleCommand cheats_enable = new(0f, "Allows cheats on the server to be used.");
+        public static ConsoleCommand cheats_playerjumpheight = new(1f, "Changes the jump height of each player to {x} multiplier.");
+        #endregion
+        #region Rendering
+        public static ConsoleCommand draw_bg = new(1f, "Enable the drawing of backgrounds.");
+        #endregion
+        #region GamePhysics
+        public static ConsoleCommand phys_playerfriction = new(1f, "Change the friction of every player in the server.");
+        public static ConsoleCommand phys_boosterpadpushscale = new(1f, "Change the force applied by a booster pad by a multiplier of {x}.");
+        #endregion
+
+        internal static FieldInfo[] ConsoleFields { get; } = typeof(IngameConsole).GetFields().Where(fld => fld.FieldType == typeof(ConsoleCommand)).ToArray();
+        private static FieldInfo[] AllFields { get; } = typeof(IngameConsole).GetFields();
+
+        public static void SubmitCommand(string fld, object arg)
         {
             // get this to work soon
-            /*foreach (var cmdList in all)
+            foreach (var field in ConsoleFields)
             {
-                for (int i = 0; i < cmdList.Length; i++)
+                if (fld == field.Name)
                 {
-                    var cmd = cmdList[i];
-                    if (command == cmd.Key)
+                    if (field.Name.Contains("cheats") && field.Name != "cheats_enable" && cheats_enable != 1)
                     {
-                        Console.WriteLine($"Command Submitted: '{command}' | Value set from {cmd.Value} to {arg}");
-                        cmd.Value = arg;
+                        Console.WriteLine($"Command Submitted: '{fld}' | Cannot set value as cheats are not enabled!");
                         return;
                     }
+                    // GameContent.BaselessJumping.BaseLogger.Write($"Command Submitted: '{fld}' | Value set from {field?.GetValue(null)} to {arg}", Logger.LogType.Info);
+                    Console.WriteLine($"Command Submitted: '{fld}' | Value set from {(field?.GetValue(null) as ConsoleCommand).Value} to {arg}");
+                    if (float.TryParse(arg.ToString(), out var newFloat))
+                    {
+                        ((ConsoleCommand)field.GetValue(null)).Value = newFloat;
+                    }
+                    else
+                    {
+                        // GameContent.BaselessJumping.BaseLogger.Write($"Command Submitted: '{fld}' | Value found but entered value is not the same type as the field value!", Logger.LogType.Warn);
+                        Console.WriteLine($"Command Submitted: '{fld}' | Value found but entered value is not the same type as the field value!");
+                        return;
+                    }
+                    return;
+
                 }
             }
-            Console.WriteLine("Unknown command submitted.");*/
+            Console.WriteLine("Unknown command submitted.");
         }
         public static void Close()
         {
@@ -49,47 +73,76 @@ namespace BaselessJumping.Internals
         }
         public static void Open()
         {
-            Rectangle textRectangle = new(20, 20, 100, 100);
             Enabled = true;
             TextInputEXT.StartTextInput();
-            TextInputEXT.SetInputRectangle(new(20, 120, 100, 100));
-            BJGame.Instance.GraphicsDevice.ScissorRectangle = textRectangle;
+            TextInputEXT.SetInputRectangle(WritingBox);
+            // BJGame.Instance.GraphicsDevice.ScissorRectangle = WritingBox;
         }
-        internal static void Init() =>
+        internal static void Init()
+        {
             TextInputEXT.TextInput += OnTextInput;
+        }
         private static void OnTextInput(char obj)
         {
             // the character
+            MatchedStrings.Clear();
             if (Enabled)
             {
-                Console.WriteLine($"{obj}: {obj.GetHashCode()}");
+                foreach (var fld in AllFields)
+                {
+                    List<string> names = new();
+                    names.Add(fld.Name);
+                    foreach (var match in StringComparator.FindMatches(CurrentlyWrittenText, names.ToArray()))
+                    {
+                        MatchedStrings.Add(match);
+                    }
+                }
                 switch (obj.GetHashCode())
                 {
                     case 851981:
-                        var vals = curWritten.Split(" ");
-                        if (vals.Length < 2 || vals[1] == string.Empty)
+                        var vals = CurrentlyWrittenText.Split(" ");
+                        if (vals.Length == 1)
                         {
-                            Console.WriteLine($"Command incomplete. Only {vals.Length} args written.");
+                            foreach (var fld in ConsoleFields)
+                            {
+                                if (fld.Name == vals[0])
+                                {
+                                    Console.WriteLine(((ConsoleCommand)fld.GetValue(null)).Description);
+                                }
+                            }
                         }
-                        else
+                        if (vals.Length == 2)
                             SubmitCommand(vals[0], vals[1]);
-                        curWritten = string.Empty;
-                        return;
+                        CurrentlyWrittenText = string.Empty;
+                        break;
                     case 524296:
-                        if (curWritten.Length > 0)
+                        if (CurrentlyWrittenText.Length > 0)
                         {
-                            curWritten = curWritten.Remove(curWritten.Length - 1);
+                            CurrentlyWrittenText = CurrentlyWrittenText.Remove(CurrentlyWrittenText.Length - 1);
                         }
-                        return;
+                        break;
                     case 1441814:
                         var txt = ClipboardService.GetText();
-                        curWritten += txt;
-                        return;
+                        CurrentlyWrittenText += txt;
+                        break;
                     default:
-                        curWritten += obj;
-                        return;
+                        CurrentlyWrittenText += obj;
+                        break;
                 }
             }
         }
+    }
+    public class ConsoleCommand
+    {
+        public float Value { get; set; }
+        public string Description { get; }
+        public ConsoleCommand(float value, string description)
+        {
+            Value = value;
+            Description = description;
+        }
+
+        public static implicit operator float(ConsoleCommand cmd) => cmd.Value;
+        public static implicit operator string(ConsoleCommand cmd) => cmd.Description;
     }
 }

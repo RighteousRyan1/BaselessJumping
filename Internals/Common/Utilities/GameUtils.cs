@@ -152,7 +152,7 @@ namespace BaselessJumping.Internals.Common.Utilities
             chosenTs.Clear();
             return values;
         }
-        public static void DrawStringAtMouse(object text) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), MousePosition + new Vector2(25), Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
+        public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
         public static bool IsPlaying(this SoundEffectInstance instance) => instance.State == SoundState.Playing;
         public static bool IsPaused(this SoundEffectInstance instance) => instance.State == SoundState.Paused;
         public static bool IsStopped(this SoundEffectInstance instance) => instance.State == SoundState.Stopped;

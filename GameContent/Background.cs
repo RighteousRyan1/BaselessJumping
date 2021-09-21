@@ -52,7 +52,7 @@ namespace BaselessJumping.GameContent
         }
         public static void DrawBGs()
         {
-            if (!IngameConsole.CommandValues.DrawBackgrounds)
+            if (IngameConsole.draw_bg != 1)
                 return;
             foreach (var bg in Backgrounds)
             {

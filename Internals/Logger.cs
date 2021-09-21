@@ -1,15 +1,18 @@
-using System.IO;
+﻿using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System;
 
 namespace BaselessJumping.Internals
 {
-    // TODO: Finish Logger
     public sealed class Logger : IDisposable
     {
         private readonly string writeTo;
-        public string Name { get; }
+
+        public string Name
+        {
+            get;
+        }
 
         private readonly Assembly assembly;
 
@@ -24,26 +27,26 @@ namespace BaselessJumping.Internals
             Debug
         }
 
-        public Logger(string writeFile, string name)
-        {
+        public Logger(string writeFile, string name) {
             assembly = Assembly.GetExecutingAssembly();
             Name = name;
-            writeTo = writeFile;
 
-            string withName = Path.Combine(writeFile, $"{name}.log");
+            writeTo = Path.Combine(writeFile, $"{name}.log");
 
-            fStream = new(withName, FileMode.OpenOrCreate);
+            fStream = new(writeTo, FileMode.OpenOrCreate);
+            fStream.SetLength(0);
             sWriter = new(fStream);
         }
-        public void Write(object write, LogType writeType)
-        {
-            string str = $"[{assembly.GetName().Name}] [{writeType}]: {write}";
+
+        public void Write(object contents, LogType writeType) {
+            fStream.Position = fStream.Length;
+            string str = $"[{DateTime.Now.TimeOfDay}] [{assembly.GetName().Name}] [{writeType}]: {contents}";
             sWriter.WriteLine(str);
             Debug.WriteLine(str);
+            sWriter.Flush();
         }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             sWriter?.Dispose();
             fStream?.Dispose();
         }

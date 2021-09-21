@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Internals.Common.Utilities;
+using BaselessJumping.Internals;
 
 namespace BaselessJumping.GameContent.Props
 {
@@ -28,8 +29,8 @@ namespace BaselessJumping.GameContent.Props
         public BoosterPadDirection BoosterDirection { get; set; }
         public float pushScale = 0f;
 
-        private Texture2D bubbleTexture = Resources.GetResourceBJ<Texture2D>("Bubble");
-        private Texture2D arrowTexture = Resources.GetResourceBJ<Texture2D>("Arrow");
+        private Texture2D bubbleTexture = Resources.GetGameResource<Texture2D>("Bubble");
+        private Texture2D arrowTexture = Resources.GetGameResource<Texture2D>("Arrow");
 
         public Color BubbleColor { get; set; }
         public Color ArrowColor { get; set; }
@@ -92,7 +93,7 @@ namespace BaselessJumping.GameContent.Props
             {
                 if (player.Hitbox.Intersects(Hitbox))
                 {
-                    player.velocity += new Vector2(0, -pushScale).RotatedByRadians(radians);
+                    player.velocity += new Vector2(0, -pushScale * IngameConsole.phys_boosterpadpushscale).RotatedByRadians(radians);
                 }
             }
         }

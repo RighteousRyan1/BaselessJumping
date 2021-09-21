@@ -24,7 +24,7 @@ namespace BaselessJumping
 		public static SpriteBatch spriteBatch;
 		public readonly GraphicsDeviceManager GDManager;
 		public static string ProjectPath => Directory.GetCurrentDirectory();
-		public static string ExePath => Assembly.GetExecutingAssembly().Location.Replace(@$"\{nameof(GameContent.BaselessJumping)}.dll", string.Empty);
+		public static string ExePath => Assembly.GetExecutingAssembly().Location.Replace(@$"\BaselessJumping.dll", string.Empty);
 		private static bool _displayMiscInfo;
 		private static bool _showBoundKeybinds;
 		public struct Fonts
@@ -83,21 +83,21 @@ namespace BaselessJumping
         }
         protected override void OnExiting(object sender, EventArgs args)
         {
-			GameContent.BaselessJumping.Exit();
+			GameContent.GameManager.Exit();
         }
 
         protected override void LoadContent()
 		{
 			LoadGameContent();
 
-			GameContent.BaselessJumping.Init();
+			GameContent.GameManager.Init();
 			base.LoadContent();
         }
 
 		protected override void Update(GameTime gameTime)
         {
 			Input.HandleInput();
-			GameContent.BaselessJumping.LastCapturedGameTime = gameTime;
+			GameContent.GameManager.LastCapturedGameTime = gameTime;
 			if (Input.KeyJustPressed(Keys.Delete))
 				Console.Clear();
 			if (Input.KeyJustPressed(Keys.Insert))
@@ -105,7 +105,7 @@ namespace BaselessJumping
 			if (Input.KeyJustPressed(Keys.Home))
 				_showBoundKeybinds = !_showBoundKeybinds;
 
-			GameContent.BaselessJumping.Update();
+			GameContent.GameManager.Update();
 
 			Input.OldKeySnapshot = Input.CurrentKeySnapshot;
 			Input.OldMouseSnapshot = Input.CurrentMouseSnapshot;
@@ -115,7 +115,7 @@ namespace BaselessJumping
         {
 			GraphicsDevice.Clear(Color.Black);
 			spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
-			GameContent.BaselessJumping.Draw();
+			GameContent.GameManager.Draw();
 
 			var fileNames = Directory.GetFiles(ProjectPath + "/Assets");
 			float len = 0f;

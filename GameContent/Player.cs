@@ -65,12 +65,14 @@ namespace BaselessJumping.GameContent
 
         public void Update()
         {
-            velocity.Y += 0.1f * gravity;
+            velocity.Y += 0.15f * gravity;
 
             UpdateBlockCollision();
             UpdateMovement();
             UpdateRecieveAttack();
             UpdateTeam();
+            if (!IngameConsole.Enabled)
+                UpdateInput();
 
             Hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
 
@@ -88,7 +90,7 @@ namespace BaselessJumping.GameContent
             // Texture2D
 
             var offset = velocity;
-
+            OnBlockType = 0;
             for (int i = 0; i < 10; i++)
             {
                 BoxCastInfo collisionInfo = new();
@@ -105,11 +107,10 @@ namespace BaselessJumping.GameContent
                             {
                                 if (info.tValue < collisionInfo.tValue)
                                     collisionInfo = info;
+
+                                if (info.normal.Y < 0)
+                                    OnBlockType = block.id;
                             }
-                            if (velocity.Y == 0)
-                                OnBlockType = block.id;//Block.Methods.GetValidBlock((int)position.X / 16, (int)position.Y / 16 + 1).id;
-                            else
-                                OnBlockType = 0;
                         }
                     }
                 }
@@ -167,10 +168,26 @@ namespace BaselessJumping.GameContent
         }
         private void UpdateMovement()
         {
+            if (IsCollidingFloor && !IsMoving && velocity.Y == 0)
+            {
+                var fric = IngameConsole.phys_playerfriction;
+                switch (OnBlockType)
+                {
+                    case Block.ID.Grass:
+                        velocity.X *= 0.92f / fric;
+                        break;
+                    case Block.ID.Stone:
+                        velocity.X *= 0.81f / fric;
+                        break;
+                }
+            }
+        }
+        private void UpdateInput()
+        {
             if (ControlJump.JustPressed)
             {
                 if (velocity.Y == 0f)
-                    velocity.Y -= 4f;
+                    velocity.Y -= 5f * IngameConsole.cheats_playerjumpheight;
             }
             if (ControlRight.IsPressed)
             {
@@ -184,26 +201,6 @@ namespace BaselessJumping.GameContent
                 if (velocity.X > -3)
                 {
                     velocity.X -= 0.5f;
-                }
-            }
-            if (IsCollidingFloor && !IsMoving && velocity.Y == 0)
-            {
-                try
-                {
-                    var fric = IngameConsole.phys_playerfriction.Value;
-                    switch (OnBlockType)
-                    {
-                        case Block.ID.Grass:
-                            velocity.X *= 0.92f * fric;
-                            break;
-                        case Block.ID.Stone:
-                            velocity.X *= 0.85f * fric;
-                            break;
-                    }
-                }
-                catch
-                {
-                    IngameConsole.phys_playerfriction.Value = 1f;
                 }
             }
         }
@@ -258,22 +255,22 @@ namespace BaselessJumping.GameContent
             public float tValue;
             public Vector2 normal;
         }
-        private bool BoxCast(Rectangle movingBox, Rectangle testBox, Vector2 offset, out BoxCastInfo info)
+        private bool BoxCast(Rectangle movingBox, Rectangle collidingBox, Vector2 offset, out BoxCastInfo info)
         {
             info = new();
             float horizontalT;
             if (offset.X > 0)
-                horizontalT = (float)(testBox.Left - movingBox.Right) / (float)(offset.X);
+                horizontalT = (float)(collidingBox.Left - movingBox.Right) / (float)(offset.X);
             else if (offset.X < 0)
-                horizontalT = (float)(testBox.Right - movingBox.Left) / (float)(offset.X);
+                horizontalT = (float)(collidingBox.Right - movingBox.Left) / (float)(offset.X);
             else
                 horizontalT = -1.0f;
 
             float verticalT;
             if (offset.Y > 0)
-                verticalT = (float)(testBox.Top - movingBox.Bottom) / (float)(offset.Y);
+                verticalT = (float)(collidingBox.Top - movingBox.Bottom) / (float)(offset.Y);
             else if (offset.Y < 0)
-                verticalT = (float)(testBox.Bottom - movingBox.Top) / (float)(offset.Y);
+                verticalT = (float)(collidingBox.Bottom - movingBox.Top) / (float)(offset.Y);
             else
                 verticalT = -1.0f;
 
@@ -282,7 +279,7 @@ namespace BaselessJumping.GameContent
                 isHorizontal = false;
             if (horizontalT > 1.0f)
                 isHorizontal = false;
-            if (testBox.Top >= movingBox.Bottom || testBox.Bottom <= movingBox.Top)
+            if (collidingBox.Top >= movingBox.Bottom || collidingBox.Bottom <= movingBox.Top)
                 isHorizontal = false;
 
             bool isVertical = true;
@@ -290,7 +287,7 @@ namespace BaselessJumping.GameContent
                 isVertical = false;
             if (verticalT > 1.0f)
                 isVertical = false;
-            if (testBox.Left >= movingBox.Right || testBox.Right <= movingBox.Left)
+            if (collidingBox.Left >= movingBox.Right || collidingBox.Right <= movingBox.Left)
                 isVertical = false;
 
             // ChatText.NewText($"hor: {horizontalT} | vert: {verticalT} | isHor: {isHorizontal} | isVert: {isVertical}");

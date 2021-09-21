@@ -25,7 +25,7 @@ namespace BaselessJumping.Internals.Common.GameUI
         public Color color = Color.White;
         public Vector2 drawPosition;
         public float scale;
-        public Texture2D texture = Resources.GetResourceBJ<Texture2D>("WhitePixel");
+        public Texture2D texture = Resources.GetGameResource<Texture2D>("WhitePixel");
         public SpriteEffects SpriteFX { get; set; } = default;
         public Rectangle HoverBox { get; private set; }
         public bool JustClicked { get; private set; }

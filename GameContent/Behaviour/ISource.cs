@@ -7,4 +7,14 @@ namespace BaselessJumping.GameContent.Behaviour
     {
         string Reason { get; set; }
     }
+
+    public interface IUnsafeSource<TOwner>
+    {
+        string Reason { get; set; }
+    }
+
+    public interface ISource
+    {
+        string Reason { get; set; }
+    }
 }

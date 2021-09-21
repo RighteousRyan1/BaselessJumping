@@ -24,7 +24,7 @@ using BaselessJumping.MapGeneration;
 
 namespace BaselessJumping.GameContent
 {
-    public class BaselessJumping
+    public class GameManager
     {
         // TODO: fix music volume not changing
         // TODO: fix music audio not looping
@@ -45,11 +45,10 @@ namespace BaselessJumping.GameContent
         public static Player PlayerOne { get; private set; }
         private static bool _showFPS;
 
-        public static GenPattern testPattern = new(100, 400, 5, 5, 5, 8, 8);
         internal static void Update()
         {
-            if (Input.KeyJustPressed(Keys.G))
-                testPattern.Generate();
+            /*if (Input.KeyJustPressed(Keys.G))
+                testPattern.Generate();*/
 
             foreach (var bind in Keybind.AllKeybinds)
                 bind?.Update();
@@ -84,7 +83,7 @@ namespace BaselessJumping.GameContent
                 {
                     Block.Methods.BreakBlock(GameUtils.MouseX_TBC, GameUtils.MouseY_TBC);
                 }
-                if (Input.KeyJustPressed(Keys.C))
+                if (Input.KeyJustPressed(Keys.NumPad0))
                 {
                     foreach (var block in Block.Blocks)
                     {
@@ -125,14 +124,20 @@ namespace BaselessJumping.GameContent
             ChatText.DrawAllButtons();
             var orig = BJGame.Fonts.SilkPixel.MeasureString(ChatText.curTypedText);
             var orig2 = new Vector2(0, orig.Y / 2);
-            GameUtils.DrawStringAtMouse(IngameConsole.curWritten + $"\n\n{Input.DeltaScrollWheel + 1}");
+            GameUtils.DrawStringAtMouse(IngameConsole.CurrentlyWrittenText + $"\n\n{Input.DeltaScrollWheel + 1}", new(0, -20));
+
+            int offY = 0;
+            foreach (var match in IngameConsole.MatchedStrings)
+            {
+                GameUtils.DrawStringAtMouse($"{match} | similarity: {StringComparator.CompareTo_GetSimilarity(IngameConsole.CurrentlyWrittenText, match)}%", new(20, offY));
+                offY += 30;
+            }
             BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, ChatText.curTypedText, new(20, GameUtils.WindowHeight - 20), Color.White, 0f, orig2, 0.5f, default, 0f);
         }
         internal static void Init()
         {
             #region GameContent Init
             LoadableSystem.Load();
-            Background.SetBackground(1);
 
             for (int i = 0; i < 8; i++)
             {
@@ -150,6 +155,8 @@ namespace BaselessJumping.GameContent
                 }
             }
             #endregion
+
+            Background.SetBackground(1);
         }
         internal static void Exit()
         {
@@ -180,10 +187,10 @@ namespace BaselessJumping.GameContent
             {
                 IngameConsole.Enabled = !IngameConsole.Enabled;
             }
-            if (Input.FirstPressedKey.IsNum(out int num))
+            /*if (Input.FirstPressedKey.IsNum(out int num))
             {
                 Background.SetBackground(num);
-            }
+            }*/
         }
     }
 }

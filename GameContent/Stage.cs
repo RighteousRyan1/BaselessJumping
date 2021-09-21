@@ -12,7 +12,7 @@ namespace BaselessJumping.GameContent
         public Stage(string name) => Name = name;
         public string Name { get; set; }
 
-        public List<Block> BlockArray { get; private set; } = new();
+        public Block[,] BlockArray { get; private set; }
 
         private static Stage curLoadedStage;
 
@@ -20,22 +20,16 @@ namespace BaselessJumping.GameContent
         {
             string root = Path.Combine(BJGame.ExePath, "Stages");
             string path = Path.Combine(root, $"{stage.Name}.stg");
-            if (!Directory.Exists(root))
-                Directory.CreateDirectory(root);
-            stage.BlockArray.Clear();
-
-            foreach (var block in Block.Blocks)
-            {
-                if (block != null)
-                {
-                    stage.BlockArray.Add(block);
-                }
-            }
+            Directory.CreateDirectory(root);
+            stage.BlockArray = Block.Blocks;
 
             using var writer = new BinaryWriter(File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite));
 
+            writer.Write(stage.BlockArray.Length);
             foreach (var bl in stage.BlockArray)
             {
+                if (bl == null)
+                    break;
                 writer.Write(bl.Active);
                 writer.Write(bl.X);
                 writer.Write(bl.Y);
@@ -45,17 +39,16 @@ namespace BaselessJumping.GameContent
         {
             string root = Path.Combine(BJGame.ExePath, "Stages");
             string path = Path.Combine(root, $"{stage.Name}.stg");
-            if (!Directory.Exists(root))
-                Directory.CreateDirectory(root);
-            using (var reader = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read)))
+            Directory.CreateDirectory(root);
+            using var reader = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read));
+            int count = reader.ReadInt32();
+
+            stage.BlockArray = new Block[count, count];
+            for (int i = 0; i < count; i++)
             {
-                foreach (var bl in stage.BlockArray)
-                {
-                    int x = reader.ReadInt32();
-                    int y = reader.ReadInt32();
-                    var b = Block.Blocks[x, y];
-                    b.Active = reader.ReadBoolean();
-                }
+                var block = Block.Blocks[reader.ReadInt32(), reader.ReadInt32()];
+
+                block.Active = reader.ReadBoolean();
             }
             curLoadedStage = stage;
         }

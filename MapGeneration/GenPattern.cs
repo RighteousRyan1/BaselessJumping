@@ -2,6 +2,7 @@
 using BaselessJumping.GameContent;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BaselessJumping.MapGeneration
 {
@@ -37,25 +38,36 @@ namespace BaselessJumping.MapGeneration
         /// Generates this GenPattern.
         /// </summary>
         /// <param name="patternManipulator">Call an action each time this method is iterated. <para> </para>For instance, for each step this GenPattern has, call this parameter's contents.</param>
-        public void Generate(Action<GenPattern> patternManipulator = null, Action<Block> blockManipulator = null)
+        public async Task Generate(Action<GenPattern> patternManipulator = null, Action<Block> blockManipulator = null)
         {
+            // this could be insanely optimised
             int attempts = 0;
-            int addStepX =  speedX * attempts;
-            int addStepY = speedY * attempts;
             do
             {
+                await Task.Delay(50);
                 attempts++;
+                int addStepX = speedX * attempts;
+                int addStepY = speedY * attempts;
                 for (int i = x - width / 2 + addStepX; i < x + width / 2 + addStepX; i++)
                 {
                     for (int j = y - height / 2 + addStepY; j < y + height / 2 + addStepY; j++)
                     {
-                        var block = Block.Methods.GetValidBlock(i, j);
-                        block.Active = true;
-                        patternManipulator?.Invoke(this);
-                        blockManipulator?.Invoke(block);
+                        if (j < 0)
+                            break;
+                        if (i < 0)
+                            break;
+                        Console.WriteLine($"({i}, {j})");
+                        // Console.WriteLine($"({addStepX}, {addStepY})");
+                        var block = Block.Methods.GetValidBlock(i, j, out var valid);
+                        if (valid)
+                        {
+                            block.Active = true;
+                            patternManipulator?.Invoke(this);
+                            blockManipulator?.Invoke(block);
+                        }
                     }
                 }
-                Console.WriteLine($"A GenPattern has generated {attempts} time(s).\n{addStepX} {addStepY}");
+                Console.WriteLine($"A GenPattern has generated {attempts} time(s).");
             }
             while (attempts < steps);
         }
