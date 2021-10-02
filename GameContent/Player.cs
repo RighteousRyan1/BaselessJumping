@@ -11,6 +11,7 @@ using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals;
 using BaselessJumping.GameContent.Visuals;
 using BaselessJumping.GameContent.Physics;
+using System.Linq;
 
 namespace BaselessJumping.GameContent
 {
@@ -19,14 +20,17 @@ namespace BaselessJumping.GameContent
     {
         public static List<Player> AllPlayers { get; } = new();
 
-        public Item HeldItem { get; private set; }
         public Item[] inventory = new Item[3];
 
+        public Item HeldItem => inventory[heldItemId];
+
+        private int heldItemId;
         public Keybind ControlDown { get; set; }
         public Keybind ControlUp { get; set; }
         public Keybind ControlLeft { get; set; }
         public Keybind ControlRight { get; set; }
         public Keybind ControlJump { get; set; }
+        public Keybind ControlThrowItem { get; set; }
 
         public Rectangle hitbox;
 
@@ -49,6 +53,9 @@ namespace BaselessJumping.GameContent
         public bool IsCollidingWallRight { get; private set; }
         public bool IsCollidingCeiling { get; private set; }
         public bool IsColliding { get; private set; }
+
+        public GameStopwatch pickupCooldown = new();
+        public const int PICKUP_RESET_SATISFACTION = 60;
 
         private bool IsMoving => ControlLeft.IsPressed || ControlRight.IsPressed;
 
@@ -73,32 +80,31 @@ namespace BaselessJumping.GameContent
 
         public void Update()
         {
+            heldItemId = (int)MathHelper.Clamp(heldItemId, 0, 2);
             // TODO: finish prim trail
-            velocity.Y += 0.15f * gravity;
-
-            UpdateBlockCollision();
-            UpdateMovement();
-            UpdateRecieveAttack();
-            UpdateTeam();
+            hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
             if (!IngameConsole.Enabled)
                 UpdateInput();
-
-            hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
-
+            if (ControlThrowItem.JustPressed)
+                ThrowItem(heldItemId, out var s);
+            UpdateMovement();
+            UpdateTeam();
             if (!hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100)))
                 velocity = Vector2.Zero;
-            /*oldPositions.RemoveAt(100);
-            oldPositions.Add(position);
+            if (!IngameConsole.cheats_noclip)
+            {
+                velocity.Y += 0.15f * gravity;
 
-            ChatText.NewText(oldPositions[100]);*/
+                UpdateBlockCollision();
+                UpdateRecieveAttack();
+            }
+            /*oldPositions.RemoveAt(100);
+                oldPositions.Add(position);
+
+                ChatText.NewText(oldPositions[100]);*/
         }
         private void UpdateBlockCollision()
         {
-            // Rectangle
-            // Vector2
-            // Vector3
-            // Texture2D
-
             var offset = velocity;
             OnBlockType = 0;
             for (int i = 0; i < 10; i++)
@@ -166,11 +172,6 @@ namespace BaselessJumping.GameContent
                     IsColliding = true;
                 }
             }
-            if (Input.MouseMiddle)
-            {
-                position = GameUtils.MousePosition;
-                velocity = GameUtils.GetMouseVelocity();
-            }
         }
         private void UpdateRecieveAttack()
         {
@@ -213,6 +214,18 @@ namespace BaselessJumping.GameContent
                     velocity.X -= 0.5f;
                 }
             }
+
+            if (Input.FirstPressedKey.IsNum(out int num))
+            {
+                if (num < 4)
+                    heldItemId = num;
+            }
+
+            if (Input.MouseMiddle)
+            {
+                position = GameUtils.MousePosition;
+                velocity = GameUtils.GetMouseVelocity();
+            }
         }
         private void UpdateTeam()
         {
@@ -238,12 +251,56 @@ namespace BaselessJumping.GameContent
                 return Color.Gray; // This should be when PvPTeam is None
             }
         }
+
+        public void GrabItem(Item item, out bool successful)
+        {
+            var asList = inventory.ToList();
+            var i = asList.FirstOrDefault(i => i == null);
+
+            var index = asList.IndexOf(i);
+
+            if (index == -1)
+            {
+                successful = false;
+                return;
+            }
+
+            i = item;
+            inventory[index] = i;
+            Item.CopyDataTo(ref i, ref inventory[index]);
+            successful = true;
+        }
+
+        public void ThrowItem(int inventoryId, out bool successful)
+        {
+            successful = false;
+            if (inventory[inventoryId] != null)
+            {
+                pickupCooldown.Restart();
+
+                var iId = inventory[inventoryId].id;
+                var item = Item.CreateNew(iId, position);
+
+                Item.CopyDataTo(ref inventory[inventoryId], ref item);
+
+                item.velocity = direction == 1 ? new Vector2(5, -5) : new Vector2(-5, -5);
+                inventory[inventoryId] = null;
+                successful = true;
+            }
+        }
+
         public void Draw()
         {
             var sb = BJGame.spriteBatch;
             sb.Draw(texture, hitbox, Color.White);
-            // sb.DrawString(BJGame.Fonts.Go, ToString(), position - new Vector2(0, 10), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally , 0f);
-            sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
+            int x = 0;
+            foreach (var i in inventory)
+            {
+                if (i != null)
+                    sb.DrawString(BJGame.Fonts.Go, $"{i} : {x}", position - new Vector2(0, 20 * x), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, default, 0f);
+                x++;
+            }
+            sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType} | held: {heldItemId}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
         }
 
         public void Initialize()
@@ -253,6 +310,9 @@ namespace BaselessJumping.GameContent
             ControlDown = new("Down", Keys.S);
             ControlLeft = new("Left", Keys.A);
             ControlRight = new("Right", Keys.D);
+            ControlThrowItem = new("ThrowItem", Keys.T);
+
+            pickupCooldown.Start();
 
             for (int i = 0; i < 101; i++)
                 oldPositions.Add(position);
@@ -262,69 +322,5 @@ namespace BaselessJumping.GameContent
         {
             return $"vel: {velocity} | pos: {position} | Hitbox: {hitbox}";
         }
-        /*private struct BoxCastInfo
-        {
-            public float tValue;
-            public Vector2 normal;
-        }
-        private bool BoxCast(Rectangle movingBox, Rectangle collidingBox, Vector2 offset, out BoxCastInfo info)
-        {
-            info = new();
-            float horizontalT;
-            if (offset.X > 0)
-                horizontalT = (float)(collidingBox.Left - movingBox.Right) / (float)(offset.X);
-            else if (offset.X < 0)
-                horizontalT = (float)(collidingBox.Right - movingBox.Left) / (float)(offset.X);
-            else
-                horizontalT = -1.0f;
-
-            float verticalT;
-            if (offset.Y > 0)
-                verticalT = (float)(collidingBox.Top - movingBox.Bottom) / (float)(offset.Y);
-            else if (offset.Y < 0)
-                verticalT = (float)(collidingBox.Bottom - movingBox.Top) / (float)(offset.Y);
-            else
-                verticalT = -1.0f;
-
-            bool isHorizontal = true;
-            if (horizontalT < 0.0f)
-                isHorizontal = false;
-            if (horizontalT > 1.0f)
-                isHorizontal = false;
-            if (collidingBox.Top >= movingBox.Bottom || collidingBox.Bottom <= movingBox.Top)
-                isHorizontal = false;
-
-            bool isVertical = true;
-            if (verticalT < 0.0f)
-                isVertical = false;
-            if (verticalT > 1.0f)
-                isVertical = false;
-            if (collidingBox.Left >= movingBox.Right || collidingBox.Right <= movingBox.Left)
-                isVertical = false;
-
-            // ChatText.NewText($"hor: {horizontalT} | vert: {verticalT} | isHor: {isHorizontal} | isVert: {isVertical}");
-
-            if (!isHorizontal && !isVertical)
-                return false;
-
-            if (!isVertical || (horizontalT < verticalT && isHorizontal))
-            {
-                info.tValue = horizontalT;
-                if (offset.X > 0)
-                    info.normal = new(-1.0f, 0.0f);
-                else
-                    info.normal = new(1.0f, 0.0f);
-            }
-            else
-            {
-                info.tValue = verticalT;
-                if (offset.Y > 0)
-                    info.normal = new(0.0f, -1.0f);
-                else
-                    info.normal = new(0.0f, 1.0f);
-            }
-            // ChatText.NewText($"normal: {info.normal}");
-            return true;
-        }*/
     }
 }

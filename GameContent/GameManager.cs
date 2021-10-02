@@ -48,6 +48,9 @@ namespace BaselessJumping.GameContent
         internal static void Update()
         {
             #region GameManager.Update
+            foreach (var st in GameStopwatch.totalTrackable)
+                if(st is not null && st.Running)
+                    st?.IncreaseTimer();
             foreach (var bind in Keybind.AllKeybinds)
                 bind?.Update();
             foreach (var parent in UIParent.TotalParents)
@@ -70,7 +73,7 @@ namespace BaselessJumping.GameContent
             foreach (var cText in ChatText.TotalTexts)
                 cText?.Update();
             foreach (var i in Item.items)
-                i?.Update();
+                i?.UpdateWorld();
 
             if (BJGame.Instance.IsActive)
             {
@@ -164,8 +167,13 @@ namespace BaselessJumping.GameContent
                 }
             }
             #endregion
-
+            InitializeTextures();
             Background.SetBackground(1);
+        }
+
+        private static void InitializeTextures()
+        {
+            GameAssets.ItemTexture[0] = Resources.GetGameResource<Texture2D>("Arrow");
         }
         internal static void Exit()
         {
@@ -192,8 +200,8 @@ namespace BaselessJumping.GameContent
 
             if (Input.KeyJustPressed(Keys.L))
             {
-                var x = Item.CreateNew(Resources.GetGameResource<Texture2D>("Arrow"), GameUtils.MousePosition);
-                x.velocity = new (5, 5);
+                var x = Item.CreateNew(0, GameUtils.MousePosition);
+                x.Name = "Arrow";
             }
 
             if (Input.KeyJustPressed(Keys.OemTilde))

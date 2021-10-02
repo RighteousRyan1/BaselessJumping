@@ -24,6 +24,7 @@ namespace BaselessJumping.Internals
         #region Cheats
         public static ConsoleCommand cheats_enable = new(0f, "Allows cheats on the server to be used.");
         public static ConsoleCommand cheats_playerjumpheight = new(1f, "Changes the jump height of each player to {x} multiplier.");
+        public static ConsoleCommand cheats_noclip = new(0f, "Enables noclip.");
         #endregion
         #region Rendering
         public static ConsoleCommand draw_bg = new(1f, "Enable the drawing of backgrounds.");
@@ -31,6 +32,9 @@ namespace BaselessJumping.Internals
         #region GamePhysics
         public static ConsoleCommand phys_playerfriction = new(1f, "Change the friction of every player in the server.");
         public static ConsoleCommand phys_boosterpadpushscale = new(1f, "Change the force applied by a booster pad by a multiplier of {x}.");
+        #endregion
+        #region Behaviour
+        public static ConsoleCommand bh_itemgrabrange = new(1f, "Modify the grab range for all items to players.");
         #endregion
 
         internal static FieldInfo[] ConsoleFields { get; } = typeof(IngameConsole).GetFields().Where(fld => fld.FieldType == typeof(ConsoleCommand)).ToArray();
@@ -144,5 +148,6 @@ namespace BaselessJumping.Internals
 
         public static implicit operator float(ConsoleCommand cmd) => cmd.Value;
         public static implicit operator string(ConsoleCommand cmd) => cmd.Description;
+        public static implicit operator bool(ConsoleCommand cmd) => cmd.Value == 1f;
     }
 }
