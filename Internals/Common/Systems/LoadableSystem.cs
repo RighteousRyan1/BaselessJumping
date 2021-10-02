@@ -11,14 +11,14 @@ namespace BaselessJumping.Internals.Systems
     {
         public static void Load()
         {
-            foreach (var type in CodeHelper.GetSubclasses<ILoadable>())
+            foreach (var type in OOPUtils.GetSubclasses<ILoadable>())
             {
                 type.Load();
             }
         }
         public static void Unload()
         {
-            foreach (var type in CodeHelper.GetSubclasses<ILoadable>())
+            foreach (var type in OOPUtils.GetSubclasses<ILoadable>())
             {
                 type.Unload();
             }

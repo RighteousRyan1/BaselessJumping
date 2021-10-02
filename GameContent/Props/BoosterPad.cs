@@ -37,6 +37,8 @@ namespace BaselessJumping.GameContent.Props
 
         public float radians;
 
+        public Rectangle hitbox;
+
         public static BoosterPad Create(BoosterPadDirection direction, Vector2 position, float pushScale, Color bubbleColor, Color arrowColor)
         {
             BoosterPad pad = new();
@@ -53,10 +55,8 @@ namespace BaselessJumping.GameContent.Props
         {
             int width = bubbleTexture.Width;
             int height = bubbleTexture.Height;
-            Hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
+            hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
             Update_ApplyVelocityToPlayers();
-
-            oldPosition = position;
         }
 
         private void Update_ApplyVelocityToPlayers()
@@ -91,7 +91,7 @@ namespace BaselessJumping.GameContent.Props
             }
             foreach (var player in Player.AllPlayers)
             {
-                if (player.Hitbox.Intersects(Hitbox))
+                if (player.hitbox.Intersects(hitbox))
                 {
                     player.velocity += new Vector2(0, -pushScale * IngameConsole.phys_boosterpadpushscale).RotatedByRadians(radians);
                 }

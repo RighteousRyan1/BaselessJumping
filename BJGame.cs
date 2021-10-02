@@ -20,6 +20,9 @@ namespace BaselessJumping
 {
 	public class BJGame : Game
 	{
+		public static string GameVersion => "v1.0";
+		public static string AssemblyVersion => "0.1";
+
 		public static BJGame Instance { get; private set; }
 		public static SpriteBatch spriteBatch;
 		public readonly GraphicsDeviceManager GDManager;
@@ -89,15 +92,14 @@ namespace BaselessJumping
         protected override void LoadContent()
 		{
 			LoadGameContent();
-
-			GameContent.GameManager.Init();
+			GameManager.Init();
 			base.LoadContent();
         }
 
 		protected override void Update(GameTime gameTime)
         {
 			Input.HandleInput();
-			GameContent.GameManager.LastCapturedGameTime = gameTime;
+			GameManager.LastCapturedGameTime = gameTime;
 			if (Input.KeyJustPressed(Keys.Delete))
 				Console.Clear();
 			if (Input.KeyJustPressed(Keys.Insert))
@@ -105,7 +107,7 @@ namespace BaselessJumping
 			if (Input.KeyJustPressed(Keys.Home))
 				_showBoundKeybinds = !_showBoundKeybinds;
 
-			GameContent.GameManager.Update();
+			GameManager.Update();
 
 			Input.OldKeySnapshot = Input.CurrentKeySnapshot;
 			Input.OldMouseSnapshot = Input.CurrentMouseSnapshot;
@@ -115,7 +117,7 @@ namespace BaselessJumping
         {
 			GraphicsDevice.Clear(Color.Black);
 			spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
-			GameContent.GameManager.Draw();
+			GameManager.Draw();
 
 			var fileNames = Directory.GetFiles(ProjectPath + "/Assets");
 			float len = 0f;
@@ -153,8 +155,14 @@ namespace BaselessJumping
 					j++;
 				}
 			}
-            spriteBatch.End();
-        }
+			spriteBatch.End();
+			foreach (var trail in Triangle.triangles)
+				trail?.DrawImmediate();
+
+			spriteBatch.Begin();
+			Triangle.DrawVertexHierarchies();
+			spriteBatch.End();
+		}
 
 		private void AssetsAndOtherInit()
         {

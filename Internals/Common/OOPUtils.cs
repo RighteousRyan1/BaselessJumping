@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace BaselessJumping.Internals.Common
 {
-    public static class CodeHelper
+    public static class OOPUtils
     {
         private static Type[] AllTypes => Assembly.GetExecutingAssembly().GetTypes();
         /// <summary>

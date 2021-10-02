@@ -9,16 +9,12 @@ namespace BaselessJumping.GameContent
     {
         // I know entities should only store IDs, but too bad
 
+        public static List<Entity> AllEntities { get; } = new();
+
         public Vector2 velocity;
-        public Vector2 oldVelocity;
 
         public Vector2 position;
-        public Vector2 oldPosition;
-
-        public int ID { get; private set; }
 
         public bool InWorld { get; set; }
-
-        public Rectangle Hitbox { get; set; }
     }
 }

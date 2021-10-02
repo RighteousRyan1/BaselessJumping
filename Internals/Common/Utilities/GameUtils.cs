@@ -153,6 +153,7 @@ namespace BaselessJumping.Internals.Common.Utilities
             return values;
         }
         public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
+        public static void DrawStringQuick(object text, Vector2 position) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), position, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
         public static bool IsPlaying(this SoundEffectInstance instance) => instance.State == SoundState.Playing;
         public static bool IsPaused(this SoundEffectInstance instance) => instance.State == SoundState.Paused;
         public static bool IsStopped(this SoundEffectInstance instance) => instance.State == SoundState.Stopped;
@@ -204,12 +205,13 @@ namespace BaselessJumping.Internals.Common.Utilities
         {
             return InverseLerp(begin, end, value, clamped) * 2 - 1;
         }
-
         public static int[] GetFrames(int frames, int textureHeight)
         {
             // this displays frame num, not actual
             int frameCount = textureHeight / frames;
             return new int[frameCount];
         }
+        public static Vector2 GetNormalDisplay()
+            => new(BJGame.Instance.GraphicsDevice.Viewport.Width, BJGame.Instance.GraphicsDevice.Viewport.Height);
     }
 }
