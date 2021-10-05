@@ -147,10 +147,6 @@ namespace BaselessJumping.GameContent
             #region GameContent Init
             LoadableSystem.Load();
 
-            for (int i = 0; i < 8; i++)
-            {
-                BoosterPad.Create((BoosterPad.BoosterPadDirection)i, new((i * 100) + 500, 500), 0.25f, Color.White, Color.White);
-            }
             Init_Players();
             IngameConsole.Init();
             foreach (var player in Player.AllPlayers)
@@ -173,7 +169,6 @@ namespace BaselessJumping.GameContent
 
         private static void InitializeTextures()
         {
-            GameAssets.ItemTexture[0] = Resources.GetGameResource<Texture2D>("Arrow");
         }
         internal static void Exit()
         {
@@ -182,7 +177,9 @@ namespace BaselessJumping.GameContent
         private static void Init_Players()
         {
             PlayerOne = new(TextureLoader.GetTexture("Particle"));
-            PlayerOne.position = new Vector2(500, 500);
+            PlayerOne.position = new Vector2(200, 200);
+            var p = new GenPattern(150 / 16, 400 / 16, 1, 0, 0, 10, 20);
+            p.Generate();
         }
         public static void Update_TestingStuff_REMOVE_LATER_PLEASE()
         {
@@ -195,13 +192,8 @@ namespace BaselessJumping.GameContent
             if (Input.KeyJustPressed(Keys.X))
             {
                 BaseLogger.Write("Attempting to load stage '" + stage.Name + "'...", Logger.LogType.Info);
-                Stage.LoadStage(stage);
-            }
-
-            if (Input.KeyJustPressed(Keys.L))
-            {
-                var x = Item.CreateNew(0, GameUtils.MousePosition);
-                x.Name = "Arrow";
+                Stage.LoadStage(stage.Name);
+                Stage.SetStage(stage);
             }
 
             if (Input.KeyJustPressed(Keys.OemTilde))

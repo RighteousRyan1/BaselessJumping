@@ -213,5 +213,10 @@ namespace BaselessJumping.Internals.Common.Utilities
         }
         public static Vector2 GetNormalDisplay()
             => new(BJGame.Instance.GraphicsDevice.Viewport.Width, BJGame.Instance.GraphicsDevice.Viewport.Height);
+        public static void PopulateArray<T>(ref T[] array) where T : class, new()
+        {
+            for (int i = 0; i < array.Length; i++)
+                array[i] = new();
+        }
     }
 }

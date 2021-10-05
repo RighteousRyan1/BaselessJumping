@@ -29,8 +29,7 @@ namespace BaselessJumping.GameContent
         #region Metadata
 
         public int id;
-        public int netId;
-        public int texId;
+        public int worldId;
         public Player owner; // null if no player owns it
         public ISource spawnSource;
         public bool inInventory;
@@ -41,42 +40,32 @@ namespace BaselessJumping.GameContent
 
         public int width;
         public int height;
+
         public double damage;
+
         public float scale;
         public float rotation;
+
         public string Description { get; set; }
         public string Name { get; set; }
+
         public Color Rarity { get; set; }
+
         public Rectangle hitbox;
         // position is (-1, -1) if owned by a player
 
         #endregion
 
-        private Item(Texture2D texture) 
+        private Item(int type)
         {
             int _len = 0;
             foreach (var item in items)
                 if (item != null)
                     _len++;
 
-            id = _len;
-
-            width = texture.Width;
-            height = texture.Height;
-            spawnSource = GameSources.Create();
-
-            items[_len] = this;
-        }
-        private Item(int texId)
-        {
-            int _len = 0;
-            foreach (var item in items)
-                if (item != null)
-                    _len++;
-
-            id = _len;
-            this.texId = texId;
-            var tex = GameAssets.ItemTexture[texId];
+            id = type;
+            worldId = _len;
+            var tex = GameAssets.ItemTexture[type];
             width = tex.Width;
             height = tex.Height;
             spawnSource = GameSources.Create();
@@ -88,8 +77,8 @@ namespace BaselessJumping.GameContent
         {
             OnPreDraw?.Invoke(this, new());
 
-            BJGame.spriteBatch.Draw(GameAssets.ItemTexture[texId], position, null, Color.White, rotation, GameAssets.ItemTexture[texId].Size() / 2, scale, default, 0f);
-
+            BJGame.spriteBatch.Draw(GameAssets.ItemTexture[id], position, null, Color.White, rotation, GameAssets.ItemTexture[id].Size() / 2, scale, default, 0f);
+            GameUtils.DrawStringQuick(this, position + new Vector2(0, 25));
             // DrawUtils.DrawDebugBox(hitbox);
 
             OnPostDraw?.Invoke(this, new());
@@ -117,7 +106,7 @@ namespace BaselessJumping.GameContent
         {
             Player.AllPlayers.ForEach(player =>
             {
-                if (player.pickupCooldown.ElapsedGameTicks > Player.PICKUP_RESET_SATISFACTION)
+                if (player.pickupCooldowns[id].ElapsedGameTicks > Player.PICKUP_RESET_SATISFACTION)
                 {
                     var dist = player.Distance(this);
 
@@ -127,7 +116,7 @@ namespace BaselessJumping.GameContent
 
                         if (pickedUp)
                         {
-                            items[id] = null;
+                            items[worldId] = null;
                         }
                     }
                 }
@@ -139,15 +128,6 @@ namespace BaselessJumping.GameContent
             position = new(-1, -1);
             owner = player;
             inInventory = true;
-        }
-
-        public static Item CreateNew(Texture2D texture, Vector2 position)
-        {
-            var item = new Item(texture);
-
-            item.position = position;
-            item.scale = 1f;
-            return item;
         }
 
         public static Item CreateNew(int texId, Vector2 position)
@@ -171,12 +151,12 @@ namespace BaselessJumping.GameContent
             item2.Rarity = item1.Rarity;
             item2.scale = item1.scale;
             item2.Name = item1.Name;
-			item2.texId = item1.texId;
+            item2.id = item1.id;
         }
 
         public override string ToString()
         {
-            return $"id: {id} | name: {Name}";
+            return $"id: {id} | worldId: {worldId} | name: {Name}";
         }
 
         /// <summary>

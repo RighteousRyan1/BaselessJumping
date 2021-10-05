@@ -38,7 +38,7 @@ namespace BaselessJumping.MapGeneration
         /// Generates this GenPattern.
         /// </summary>
         /// <param name="patternManipulator">Call an action each time this method is iterated. <para> </para>For instance, for each step this GenPattern has, call this parameter's contents.</param>
-        public async Task Generate(Action<GenPattern> patternManipulator = null, Action<Block> blockManipulator = null)
+        public async Task Generate(int type = 1, Action<GenPattern> patternManipulator = null, Action<Block> blockManipulator = null)
         {
             // this could be insanely optimised
             int attempts = 0;
@@ -56,18 +56,16 @@ namespace BaselessJumping.MapGeneration
                             break;
                         if (i < 0)
                             break;
-                        Console.WriteLine($"({i}, {j})");
-                        // Console.WriteLine($"({addStepX}, {addStepY})");
                         var block = Block.Methods.GetValidBlock(i, j, out var valid);
                         if (valid)
                         {
                             block.Active = true;
+                            block.id = type;
                             patternManipulator?.Invoke(this);
                             blockManipulator?.Invoke(block);
                         }
                     }
                 }
-                Console.WriteLine($"A GenPattern has generated {attempts} time(s).");
             }
             while (attempts < steps);
         }

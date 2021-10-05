@@ -12,6 +12,7 @@ using BaselessJumping.Internals;
 using BaselessJumping.GameContent.Visuals;
 using BaselessJumping.GameContent.Physics;
 using System.Linq;
+using BaselessJumping.GameContent.Powerups;
 
 namespace BaselessJumping.GameContent
 {
@@ -20,7 +21,13 @@ namespace BaselessJumping.GameContent
     {
         public static List<Player> AllPlayers { get; } = new();
 
-        public Item[] inventory = new Item[3];
+        public Item[] inventory = new Item[MAX_ITEMS_INVENTORY];
+
+        public const int MAX_POWERUPS = 5;
+        public const int MAX_ITEMS_INVENTORY = 3;
+        public const int PICKUP_RESET_SATISFACTION = 60;
+
+        public Powerup[] Powerups { get; } = new Powerup[MAX_POWERUPS];
 
         public Item HeldItem => inventory[heldItemId];
 
@@ -54,8 +61,7 @@ namespace BaselessJumping.GameContent
         public bool IsCollidingCeiling { get; private set; }
         public bool IsColliding { get; private set; }
 
-        public GameStopwatch pickupCooldown = new();
-        public const int PICKUP_RESET_SATISFACTION = 60;
+        public GameStopwatch[] pickupCooldowns = new GameStopwatch[Item.TOTAL_ITEMS];
 
         private bool IsMoving => ControlLeft.IsPressed || ControlRight.IsPressed;
 
@@ -202,16 +208,16 @@ namespace BaselessJumping.GameContent
             }
             if (ControlRight.IsPressed)
             {
-                if (velocity.X < 3)
+                if (velocity.X < 3 * IngameConsole.cheats_playermovespeed)
                 {
-                    velocity.X += 0.5f;
+                    velocity.X += 0.5f * IngameConsole.cheats_playermovespeed;
                 }
             }
             if (ControlLeft.IsPressed)
             {
-                if (velocity.X > -3)
+                if (velocity.X > -3 * IngameConsole.cheats_playermovespeed)
                 {
-                    velocity.X -= 0.5f;
+                    velocity.X -= 0.5f * IngameConsole.cheats_playermovespeed;
                 }
             }
 
@@ -276,7 +282,6 @@ namespace BaselessJumping.GameContent
             successful = false;
             if (inventory[inventoryId] != null)
             {
-                pickupCooldown.Restart();
 
                 var iId = inventory[inventoryId].id;
                 var item = Item.CreateNew(iId, position);
@@ -285,6 +290,9 @@ namespace BaselessJumping.GameContent
 
                 item.velocity = direction == 1 ? new Vector2(5, -5) : new Vector2(-5, -5);
                 inventory[inventoryId] = null;
+
+                pickupCooldowns[iId].Restart();
+
                 successful = true;
             }
         }
@@ -305,6 +313,8 @@ namespace BaselessJumping.GameContent
 
         public void Initialize()
         {
+            GameUtils.PopulateArray(ref pickupCooldowns);
+
             ControlJump = new("Jump", Keys.Space);
             ControlUp = new("Up", Keys.W);
             ControlDown = new("Down", Keys.S);
@@ -312,7 +322,8 @@ namespace BaselessJumping.GameContent
             ControlRight = new("Right", Keys.D);
             ControlThrowItem = new("ThrowItem", Keys.T);
 
-            pickupCooldown.Start();
+            foreach (var cd in pickupCooldowns)
+                cd?.Start();
 
             for (int i = 0; i < 101; i++)
                 oldPositions.Add(position);

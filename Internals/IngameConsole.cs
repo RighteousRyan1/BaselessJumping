@@ -24,6 +24,7 @@ namespace BaselessJumping.Internals
         #region Cheats
         public static ConsoleCommand cheats_enable = new(0f, "Allows cheats on the server to be used.");
         public static ConsoleCommand cheats_playerjumpheight = new(1f, "Changes the jump height of each player to {x} multiplier.");
+        public static ConsoleCommand cheats_playermovespeed = new(1f, "Changes the speed of each player to {x} multiplier.");
         public static ConsoleCommand cheats_noclip = new(0f, "Enables noclip.");
         #endregion
         #region Rendering
