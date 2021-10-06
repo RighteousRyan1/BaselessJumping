@@ -49,7 +49,7 @@ namespace BaselessJumping.GameContent
         {
             #region GameManager.Update
             foreach (var st in GameStopwatch.totalTrackable)
-                if(st is not null && st.Running)
+                if(st is not null && st.IsRunning)
                     st?.IncreaseTimer();
             foreach (var bind in Keybind.AllKeybinds)
                 bind?.Update();
@@ -110,10 +110,6 @@ namespace BaselessJumping.GameContent
             Background.DrawBGs();
 
             #region GameContent.Draw
-            foreach (var player in Player.AllPlayers)
-                player?.Draw();
-            foreach (var i in Item.items)
-                i?.Draw();
             foreach (var booster in BoosterPad.BoosterPads)
                 booster?.Draw();
             if (_showFPS)
@@ -124,6 +120,10 @@ namespace BaselessJumping.GameContent
             }
             foreach (var b in Block.Blocks)
                 b?.Draw();
+            foreach (var player in Player.AllPlayers)
+                player?.Draw();
+            foreach (var i in Item.items)
+                i?.Draw();
             foreach (var p in Particle.particles)
                 p?.Draw();
             foreach (var parent in UIParent.TotalParents)
@@ -178,8 +178,8 @@ namespace BaselessJumping.GameContent
         {
             PlayerOne = new(TextureLoader.GetTexture("Particle"));
             PlayerOne.position = new Vector2(200, 200);
-            var p = new GenPattern(150 / 16, 400 / 16, 1, 0, 0, 10, 20);
-            p.Generate();
+            // TODO: When done, remove this
+            new GenPattern(150 / 16, 400 / 16, 1, 0, 0, 10, 20).Generate();
         }
         public static void Update_TestingStuff_REMOVE_LATER_PLEASE()
         {
@@ -198,6 +198,16 @@ namespace BaselessJumping.GameContent
 
             if (Input.KeyJustPressed(Keys.OemTilde))
                 IngameConsole.Enabled = !IngameConsole.Enabled;
+
+            if (Input.CurrentKeySnapshot.IsKeyDown(Keys.I))
+            {
+                PlayerOne.Damage(1);
+                //LightingEngine.CreateLight(GameUtils.MousePosition / GameUtils.WindowHeight, 1f, 50f, Color.White);
+            }
+            if (Input.CurrentKeySnapshot.IsKeyDown(Keys.P))
+            {
+                PlayerOne.Heal(1);
+            }
             /*if (Input.FirstPressedKey.IsNum(out int num))
             {
                 Background.SetBackground(num);

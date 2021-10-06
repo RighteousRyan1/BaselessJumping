@@ -3,14 +3,16 @@ using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BaselessJumping.GameContent
 {
     public sealed class Particle : Entity
     {
-        public const int MAX_PARTICLES = 12000;
-        public static Particle[] particles = new Particle[12001];
+        public const int MAX_PARTICLES = 20000;
+        public static Particle[] particles = new Particle[MAX_PARTICLES];
 
         public float scale;
         public float rotation;
@@ -19,15 +21,26 @@ namespace BaselessJumping.GameContent
         public int id;
         public Color color;
 
-        private static int current_notNull_particles;
-
         public bool active;
+
+        public float decay = 0.025f;
 
         private Particle()
         {
+            var indice = particles.FirstOrDefault(x => x is null);
+
+            var index = Array.IndexOf(particles, indice);
+
+            if (index == -1)
+            {
+                Console.WriteLine("Max particles reached... Cannot instantiate new particle.");
+                return;
+            }
+
+            id = index;
+
             defTexture = BJGame.Instance.Content.GetResource<Texture2D>("Particle");
-            current_notNull_particles++;
-            id = current_notNull_particles;
+
             active = true;
             particles[id] = this;
         }
@@ -36,18 +49,19 @@ namespace BaselessJumping.GameContent
         {
             position += velocity;
 
-            scale -= 0.025f;
+            scale -= decay;
 
             if (scale < 0)
-                active = false;
-            if (!active)
             {
+                active = false;
                 particles[id] = null;
-                current_notNull_particles--;
             }
         }
-        public void Draw() =>
-            BJGame.spriteBatch.Draw(defTexture, position, null, color, rotation, defTexture.Size() / 2, scale, default, 0f); 
+        public void Draw()
+        {
+            BJGame.spriteBatch.Draw(defTexture, position, null, color, rotation, defTexture.Size() / 2, scale, default, 0f);
+            // GameUtils.DrawStringQuick(id, position + new Vector2(0, -30));
+        }
 
         public static Particle SpawnParticle(Vector2 position, Vector2 velocity, Color color, float scale, float rotation)
         {

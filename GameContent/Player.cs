@@ -13,6 +13,9 @@ using BaselessJumping.GameContent.Visuals;
 using BaselessJumping.GameContent.Physics;
 using System.Linq;
 using BaselessJumping.GameContent.Powerups;
+using BaselessJumping.GameContent.Mechanics;
+using BaselessJumping.Internals.Loaders;
+using BaselessJumping.Audio;
 
 namespace BaselessJumping.GameContent
 {
@@ -20,6 +23,8 @@ namespace BaselessJumping.GameContent
     public sealed class Player : Entity
     {
         public static List<Player> AllPlayers { get; } = new();
+
+        public HealthBar healthBar;
 
         public Item[] inventory = new Item[MAX_ITEMS_INVENTORY];
 
@@ -52,7 +57,11 @@ namespace BaselessJumping.GameContent
         public readonly int width;
         public readonly int height;
         public int direction = 1;
+        public GameStopwatch respawnTimer = new();
+        public int respawnTime = 180;
+
         private Texture2D texture;
+
         public float gravity = 1f;
 
         public bool IsCollidingFloor { get; private set; }
@@ -60,6 +69,8 @@ namespace BaselessJumping.GameContent
         public bool IsCollidingWallRight { get; private set; }
         public bool IsCollidingCeiling { get; private set; }
         public bool IsColliding { get; private set; }
+
+        public bool alive = true;
 
         public GameStopwatch[] pickupCooldowns = new GameStopwatch[Item.TOTAL_ITEMS];
 
@@ -75,12 +86,16 @@ namespace BaselessJumping.GameContent
 
         public PlayerVisuals DetailManager { get; }
 
+        // eventually add an ID to the player
         internal Player(Texture2D texture)
         {
             DetailManager = new(this);
             width = texture.Width;
             height = texture.Height;
             this.texture = texture;
+
+            healthBar = new(100, this);
+
             AllPlayers.Add(this);
         }
 
@@ -88,26 +103,31 @@ namespace BaselessJumping.GameContent
         {
             heldItemId = (int)MathHelper.Clamp(heldItemId, 0, 2);
             // TODO: finish prim trail
-            hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
-            if (!IngameConsole.Enabled)
-                UpdateInput();
-            if (ControlThrowItem.JustPressed)
-                ThrowItem(heldItemId, out var s);
-            UpdateMovement();
-            UpdateTeam();
-            if (!hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100)))
-                velocity = Vector2.Zero;
-            if (!IngameConsole.cheats_noclip)
+            if (alive)
             {
-                velocity.Y += 0.15f * gravity;
+                hitbox = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
+                UpdateLife();
+                if (!IngameConsole.Enabled)
+                    UpdateInput();
+                if (ControlThrowItem.JustPressed)
+                    ThrowItem(heldItemId, out var s);
+                UpdateMovement();
+                GetTeam();
 
-                UpdateBlockCollision();
-                UpdateRecieveAttack();
+                if (!hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100)))
+                {
+                    Kill();
+                }
+                if (!IngameConsole.cheats_noclip)
+                {
+                    velocity.Y += 0.15f * gravity;
+
+                    UpdateBlockCollision();
+                    UpdateRecieveAttack();
+                }
             }
-            /*oldPositions.RemoveAt(100);
-                oldPositions.Add(position);
-
-                ChatText.NewText(oldPositions[100]);*/
+            else
+                UpdateDead();
         }
         private void UpdateBlockCollision()
         {
@@ -233,7 +253,7 @@ namespace BaselessJumping.GameContent
                 velocity = GameUtils.GetMouseVelocity();
             }
         }
-        private void UpdateTeam()
+        private Color GetTeam()
         {
             Color getTeamColor()
             {
@@ -256,6 +276,74 @@ namespace BaselessJumping.GameContent
 
                 return Color.Gray; // This should be when PvPTeam is None
             }
+            return getTeamColor();
+        }
+        private void UpdateLife()
+        {
+            healthBar.currentLife = MathHelper.Clamp((float)healthBar.currentLife, 0, (float)healthBar.maxLife);
+            if (!IngameConsole.immortal)
+            {
+                if (healthBar.currentLife <= 0)
+                    Kill();
+            }
+        }
+        private void UpdateDead()
+        {
+            velocity = Vector2.Zero;
+            healthBar.currentLife = 0;
+
+            if (!respawnTimer.IsRunning)
+                respawnTimer.Start();
+
+            if (respawnTimer.ElapsedGameTicks > respawnTime)
+            {
+                Spawn(new(100, 100));
+                respawnTimer.Restart();
+                respawnTimer.Stop();
+            }
+        }
+
+        public bool Spawn(Vector2 position)
+        {
+            if (alive)
+                return false;
+
+            this.position = position;
+            healthBar.currentLife = healthBar.maxLife / 2;
+            alive = true;
+
+            var respawn = Resources.GetGameResource<SoundEffect>("PlayerRespawn");
+
+            SoundPlayer.PlaySoundInstance(respawn, 0.5f);
+
+            for (int i = 0; i < 50; i++)
+            {
+                var randCircle = position + new Vector2(0, 5).RotatedByRadians(new Random().NextDouble() * new Random().Next(0, 10));
+                Particle.SpawnParticle(randCircle, (position / 4) - (randCircle / 4), GetTeam(), 0.6f, 0f);
+            }
+
+            return true;
+        }
+
+        public void Kill()
+        {
+            for (int i = 0; i < 50; i++)
+                Particle.SpawnParticle(position, new Vector2(0, 5).RotatedByRadians(new Random().NextDouble() * new Random().Next(0, 10)), GetTeam(), 0.6f, 0f);
+
+            var deathSound = Resources.GetGameResource<SoundEffect>("PlayerDeath");
+
+            SoundPlayer.PlaySoundInstance(deathSound, 0.5f);
+
+            alive = false;
+        }
+
+        public void Damage(double damage)
+        {
+            healthBar.DeductLife(damage);
+        }
+        public void Heal(double life)
+        {
+            healthBar.HealLife(life);
         }
 
         public void GrabItem(Item item, out bool successful)
@@ -299,16 +387,20 @@ namespace BaselessJumping.GameContent
 
         public void Draw()
         {
-            var sb = BJGame.spriteBatch;
-            sb.Draw(texture, hitbox, Color.White);
-            int x = 0;
-            foreach (var i in inventory)
+            if (alive)
             {
-                if (i != null)
-                    sb.DrawString(BJGame.Fonts.Go, $"{i} : {x}", position - new Vector2(0, 20 * x), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, default, 0f);
-                x++;
+                var sb = BJGame.spriteBatch;
+                sb.Draw(texture, hitbox, Color.White);
+                GameUtils.DrawHealthBar(healthBar, position + new Vector2(0, 15), 1f, 5f);
+                int x = 0;
+                foreach (var i in inventory)
+                {
+                    if (i != null)
+                        sb.DrawString(BJGame.Fonts.Go, $"{i} : {x}", position - new Vector2(0, 20 * x), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, default, 0f);
+                    x++;
+                }
+                sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType} | held: {heldItemId}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
             }
-            sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType} | held: {heldItemId}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
         }
 
         public void Initialize()

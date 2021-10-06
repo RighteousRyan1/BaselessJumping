@@ -11,17 +11,17 @@ namespace BaselessJumping.Internals
         internal static List<GameStopwatch> totalTrackable = new();
 
         public int ElapsedGameTicks { get; internal set; }
-        public bool Running { get; private set; }
+        public bool IsRunning { get; private set; }
 
         public void Start()
-            => Running = true;
+            => IsRunning = true;
         public void Stop()
         {
             ElapsedGameTicks = 0;
-            Running = false;
+            IsRunning = false;
         }
         public void Pause() =>
-            Running = false;
+            IsRunning = false;
 
         public void Restart() =>
             ElapsedGameTicks = 0;

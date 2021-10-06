@@ -23,9 +23,11 @@ namespace BaselessJumping.Internals
 
         #region Cheats
         public static ConsoleCommand cheats_enable = new(0f, "Allows cheats on the server to be used.");
-        public static ConsoleCommand cheats_playerjumpheight = new(1f, "Changes the jump height of each player to {x} multiplier.");
-        public static ConsoleCommand cheats_playermovespeed = new(1f, "Changes the speed of each player to {x} multiplier.");
-        public static ConsoleCommand cheats_noclip = new(0f, "Enables noclip.");
+        public static ConsoleCommand cheats_playerjumpheight = new(1f, "Changes the jump height of each player to {x} multiplier.", true);
+        public static ConsoleCommand cheats_playermovespeed = new(1f, "Changes the speed of each player to {x} multiplier.", true);
+        public static ConsoleCommand cheats_noclip = new(0f, "Enables noclip.", true);
+
+        public static ConsoleCommand immortal = new(0f, "Makes the player immortal.", true);
         #endregion
         #region Rendering
         public static ConsoleCommand draw_bg = new(1f, "Enable the drawing of backgrounds.");
@@ -48,15 +50,26 @@ namespace BaselessJumping.Internals
             {
                 if (fld == field.Name)
                 {
-                    if (field.Name.Contains("cheats") && field.Name != "cheats_enable" && cheats_enable != 1)
+                    #region Special Use Cases 1
+                    if (((ConsoleCommand)field.GetValue(null)).RequiresCheats && cheats_enable != 1)
                     {
                         Console.WriteLine($"Command Submitted: '{fld}' | Cannot set value as cheats are not enabled!");
                         return;
                     }
+                    #endregion
                     // GameContent.BaselessJumping.BaseLogger.Write($"Command Submitted: '{fld}' | Value set from {field?.GetValue(null)} to {arg}", Logger.LogType.Info);
                     Console.WriteLine($"Command Submitted: '{fld}' | Value set from {(field?.GetValue(null) as ConsoleCommand).Value} to {arg}");
                     if (float.TryParse(arg.ToString(), out var newFloat))
                     {
+
+                        if (fld == "cheats_enable" && newFloat == 0f)
+                        {
+                            foreach (var cmd in ConsoleFields)
+                                if (((ConsoleCommand)cmd.GetValue(null)).RequiresCheats)
+                                {
+                                    ((ConsoleCommand)field.GetValue(null)).Value = 0f;
+                                }
+                        }
                         ((ConsoleCommand)field.GetValue(null)).Value = newFloat;
                     }
                     else
@@ -141,10 +154,13 @@ namespace BaselessJumping.Internals
     {
         public float Value { get; set; }
         public string Description { get; }
-        public ConsoleCommand(float value, string description)
+        public bool RequiresCheats { get; }
+
+        public ConsoleCommand(float value, string description, bool requiresCheats = false)
         {
             Value = value;
             Description = description;
+            RequiresCheats = requiresCheats;
         }
 
         public static implicit operator float(ConsoleCommand cmd) => cmd.Value;

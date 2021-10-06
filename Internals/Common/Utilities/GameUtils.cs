@@ -1,9 +1,12 @@
+using BaselessJumping.GameContent.Mechanics;
+using BaselessJumping.Internals.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BaselessJumping.Internals.Common.Utilities
 {
@@ -126,7 +129,6 @@ namespace BaselessJumping.Internals.Common.Utilities
         }
         public static Point ToPoint(this Vector2 vector2) => new((int)vector2.X, (int)vector2.Y);
         public static bool WindowActive => BJGame.Instance.IsActive;
-        private static List<int> chosenTs = new();
         public static T PickRandom<T>(T[] input)
         {
             int rand = new Random().Next(0, input.Length);
@@ -136,20 +138,21 @@ namespace BaselessJumping.Internals.Common.Utilities
         public static List<T> PickRandom<T>(T[] input, int amount)
         {
             List<T> values = new();
+            List<int> chosen = new();
             for (int i = 0; i < amount; i++)
             {
             ReRoll:
                 int rand = new Random().Next(0, input.Length);
 
-                if (!chosenTs.Contains(rand))
+                if (!chosen.Contains(rand))
                 {
-                    chosenTs.Add(rand);
+                    chosen.Add(rand);
                     values.Add(input[rand]);
                 }
                 else
                     goto ReRoll;
             }
-            chosenTs.Clear();
+            chosen.Clear();
             return values;
         }
         public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
@@ -217,6 +220,47 @@ namespace BaselessJumping.Internals.Common.Utilities
         {
             for (int i = 0; i < array.Length; i++)
                 array[i] = new();
+        }
+        public static void PopulateArray<T>(ref T[] array, T value) where T : class
+        {
+            for (int i = 0; i < array.Length; i++)
+                array[i] = value;
+        }
+
+        public static float NextFloat(this Random rand, float min, float max)
+        {
+            return (float)rand.NextDouble() * (max - min) + min;
+        }
+
+        public static string MakeInformationBox(string[] contents)
+        {
+            var ceiling = '-';
+            var floor = '-';
+            var corner = '+';
+            var side = '|';
+
+
+            return "";
+        }
+        public static void DrawHealthBar(HealthBar bar, Vector2 position, float width, float height)
+        {
+            BJGame.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.maxLife * width), (int)height), Color.Red);
+            BJGame.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.currentLife * width), (int)height), Color.Green);
+        }
+
+        /// <summary>
+        /// Returns -1 if no element is null.
+        /// </summary>
+        /// <typeparam name="T">The type of the array.</typeparam>
+        /// <param name="array">The array to mactch a null object in.</param>
+        /// <returns>The index in the array of the first null object.</returns>
+        public static int FirstNull_IndexOf<T>(T[] array)
+        {
+            var ind = array.FirstOrDefault(x => x is null);
+
+            var index = Array.IndexOf(array, ind);
+
+            return index;
         }
     }
 }
