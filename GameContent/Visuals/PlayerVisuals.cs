@@ -21,12 +21,13 @@ using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.UI;
 using BaselessJumping.Internals.Common.GameUI;
 using BaselessJumping.MapGeneration;
+using BaselessJumping.GameContent.Shapes;
 
 namespace BaselessJumping.GameContent.Visuals
 {
     public sealed class PlayerVisuals
     {
-        public Triangle Trail { get; private set; }
+        public Trail Trail { get; private set; }
 
         public Player AttachedPlayer { get; }
 
@@ -37,9 +38,6 @@ namespace BaselessJumping.GameContent.Visuals
 
         public void UpdateTrail()
         {
-            Trail.verticePositions[0] = AttachedPlayer.position;//PlayerOne.oldPositions[10].RotatedByRadians(PlayerOne.velocity.ToRotation());
-            Trail.verticePositions[1] = AttachedPlayer.position; // + diff.RotatedByRadians(-MathHelper.Pi / 2);
-            Trail.verticePositions[2] = AttachedPlayer.position; // + diff.RotatedByRadians(MathHelper.Pi / 2) * 10;
         }
     }
 }

@@ -21,6 +21,7 @@ using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.UI;
 using BaselessJumping.Internals.Common.GameUI;
 using BaselessJumping.MapGeneration;
+using BaselessJumping.GameContent.Shapes;
 
 namespace BaselessJumping.GameContent
 {
@@ -36,17 +37,18 @@ namespace BaselessJumping.GameContent
 
         public static Keybind ViewAll = new("View All", Keys.J);
         public static Keybind InputHandle = new("InputHandle", Keys.L);
-        public static Keybind ShowFPS = new("View FPS", Keys.F10);
+        public static Keybind ShowRenderData = new("View FPS", Keys.F10);
 
-        public static Logger BaseLogger { get; } = new($"{BJGame.ExePath}", "client_logger");
+        public static Logger BaseLogger { get; } = new($"{Base.ExePath}", "client_logger");
 
-        public static ContentManager Content => BJGame.Instance.Content;
+        public static ContentManager Content => Base.Instance.Content;
 
         public static Player PlayerOne { get; private set; }
-        private static bool _showFPS;
+        private static bool _showRenders;
 
         internal static void Update()
         {
+            RPCHandler.Update();
             #region GameManager.Update
             foreach (var st in GameStopwatch.totalTrackable)
                 if(st is not null && st.IsRunning)
@@ -62,8 +64,8 @@ namespace BaselessJumping.GameContent
                 player?.Update();
             foreach (var booster in BoosterPad.BoosterPads)
                 booster?.Update();
-            if (ShowFPS.JustPressed)
-                _showFPS = !_showFPS;
+            if (ShowRenderData.JustPressed)
+                _showRenders = !_showRenders;
             if (ViewAll.JustPressed)
                 ChatText.displayAllChatTexts = !ChatText.displayAllChatTexts;
             foreach (var b in Block.Blocks)
@@ -74,8 +76,10 @@ namespace BaselessJumping.GameContent
                 cText?.Update();
             foreach (var i in Item.items)
                 i?.UpdateWorld();
+            foreach (var q in Quad.quads)
+                q?.UpdateVerticePositions();
 
-            if (BJGame.Instance.IsActive)
+            if (Base.Instance.IsActive)
             {
                 int type = Input.DeltaScrollWheel + 1;
                 if (Input.MouseLeft && GameUtils.MouseOnScreenProtected)
@@ -104,7 +108,6 @@ namespace BaselessJumping.GameContent
 
             Update_TestingStuff_REMOVE_LATER_PLEASE();
         }
-
         internal static void Draw()
         {
             Background.DrawBGs();
@@ -112,11 +115,33 @@ namespace BaselessJumping.GameContent
             #region GameContent.Draw
             foreach (var booster in BoosterPad.BoosterPads)
                 booster?.Draw();
-            if (_showFPS)
+            if (_showRenders)
             {
-                BJGame.spriteBatch.DrawString(BJGame.Fonts.Lato,
-                            $"{Math.Round(1 / LastCapturedGameTime.ElapsedGameTime.TotalSeconds)}",
-                            new(0, GameUtils.WindowHeight - 16), Color.White, 0f, Vector2.Zero, 0.35f, default, default);
+                // $"{Math.Round(1 / LastCapturedGameTime.ElapsedGameTime.TotalSeconds)}";
+                var str1 = $"Render FPS: {Base.RenderFPS}";
+                var str2 = $"Logic FPS: {Base.LogicFPS}";
+                var str3 = $"Render Time: {Base.RenderTime}";
+                var str4 = $"Logic Time: {Base.LogicTime}";
+
+                if (Base.RenderFPS == double.PositiveInfinity)
+                    str1 = $"Render FPS: Undefined";
+
+                if (Base.LogicFPS == double.PositiveInfinity)
+                    str2 = $"Logic FPS: Undefined";
+
+                var pos1 = new Vector2(0, Base.Fonts.Komika.MeasureString(str1).Y / 2);
+                var pos2 = new Vector2(0, Base.Fonts.Komika.MeasureString(str2).Y / 2);
+                var pos3 = new Vector2(0, Base.Fonts.Komika.MeasureString(str3).Y / 2);
+                var pos4 = new Vector2(0, Base.Fonts.Komika.MeasureString(str4).Y / 2);
+
+                var strOffset = 16;
+
+
+
+                GameUtils.DrawStringQuick(str1, new(0, GameUtils.WindowHeight - strOffset * 2), 1f, pos1);
+                GameUtils.DrawStringQuick(str2, new(0, GameUtils.WindowHeight - strOffset * 3), 1f, pos2);
+                GameUtils.DrawStringQuick(str3, new(0, GameUtils.WindowHeight - strOffset * 4), 1f, pos3);
+                GameUtils.DrawStringQuick(str4, new(0, GameUtils.WindowHeight - strOffset * 5), 1f, pos4);
             }
             foreach (var b in Block.Blocks)
                 b?.Draw();
@@ -128,9 +153,9 @@ namespace BaselessJumping.GameContent
                 p?.Draw();
             foreach (var parent in UIParent.TotalParents)
                 parent?.DrawElements();
-            ChatText.DrawAllButtons();
+            ChatText.DrawAll();
             #endregion
-            var orig = BJGame.Fonts.SilkPixel.MeasureString(ChatText.curTypedText);
+            var orig = Base.Fonts.SilkPixel.MeasureString(ChatText.curTypedText);
             var orig2 = new Vector2(0, orig.Y / 2);
             GameUtils.DrawStringAtMouse(IngameConsole.CurrentlyWrittenText + $"\n\n{Input.DeltaScrollWheel + 1}", new(0, -20));
 
@@ -140,10 +165,11 @@ namespace BaselessJumping.GameContent
                 GameUtils.DrawStringAtMouse($"{match} | similarity: {StringComparator.CompareTo_GetSimilarity(IngameConsole.CurrentlyWrittenText, match)}%", new(20, offY));
                 offY += 30;
             }
-            BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, ChatText.curTypedText, new(20, GameUtils.WindowHeight - 20), Color.White, 0f, orig2, 0.5f, default, 0f);
+            Base.spriteBatch.DrawString(Base.Fonts.SilkPixel, ChatText.curTypedText, new(20, GameUtils.WindowHeight - 20), Color.White, 0f, orig2, 0.5f, default, 0f);
         }
         internal static void Init()
         {
+            RPCHandler.Load();
             #region GameContent Init
             LoadableSystem.Load();
 
@@ -167,6 +193,9 @@ namespace BaselessJumping.GameContent
             Background.SetBackground(1);
         }
 
+        /// <summary>
+        /// TODO: Finish
+        /// </summary>
         private static void InitializeTextures()
         {
         }
@@ -179,19 +208,17 @@ namespace BaselessJumping.GameContent
             PlayerOne = new(TextureLoader.GetTexture("Particle"));
             PlayerOne.position = new Vector2(200, 200);
             // TODO: When done, remove this
-            new GenPattern(150 / 16, 400 / 16, 1, 0, 0, 10, 20).Generate();
+            // new GenPattern(150 / 16, 400 / 16, 1, 0, 0, 10, 20).Generate();
         }
         public static void Update_TestingStuff_REMOVE_LATER_PLEASE()
         {
             Stage stage = new("CustomStage");
             if (Input.KeyJustPressed(Keys.Z))
             {
-                BaseLogger.Write("Saving stage with name '" + stage.Name + "'...", Logger.LogType.Info);
                 Stage.SaveStage(stage);
             }
             if (Input.KeyJustPressed(Keys.X))
             {
-                BaseLogger.Write("Attempting to load stage '" + stage.Name + "'...", Logger.LogType.Info);
                 Stage.LoadStage(stage.Name);
                 Stage.SetStage(stage);
             }

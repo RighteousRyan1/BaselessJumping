@@ -19,7 +19,7 @@ namespace BaselessJumping.Internals.Loaders
             {
 				var stream = TitleContainer.OpenStream(txFile);
 
-				var tex = Texture2D.FromStream(BJGame.Instance.GDManager.GraphicsDevice, stream);
+				var tex = Texture2D.FromStream(Base.Instance.GDManager.GraphicsDevice, stream);
 
 				files.Add(txFile);
 				Debug.WriteLine($"Loaded Texture Asset at '{txFile}'");
@@ -29,7 +29,7 @@ namespace BaselessJumping.Internals.Loaders
         }
 		public static Texture2D GetTexture(string path)
         {
-			return BJGame.Instance.Content.Load<Texture2D>(path);
+			return Base.Instance.Content.Load<Texture2D>(path);
         }
 	}
 }

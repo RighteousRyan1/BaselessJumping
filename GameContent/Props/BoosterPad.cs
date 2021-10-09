@@ -99,7 +99,7 @@ namespace BaselessJumping.GameContent.Props
         }
         internal void Draw()
         {
-            var sb = BJGame.spriteBatch;
+            var sb = Base.spriteBatch;
 
 
             sb.Draw(bubbleTexture, position, null, BubbleColor, 0f, bubbleTexture.Size() / 2, 1f, default, 0f);

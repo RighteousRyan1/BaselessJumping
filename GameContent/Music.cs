@@ -38,7 +38,7 @@ namespace BaselessJumping.GameContent
         {
             path = musicPath;
             Name = name;
-            Reader = new(Path.Combine(BJGame.Instance.Content.RootDirectory, musicPath + ".ogg"));
+            Reader = new(Path.Combine(Base.Instance.Content.RootDirectory, musicPath + ".ogg"));
             this.maxVolume = maxVolume;
             DynamicSoundInstance = new(Reader.SampleRate, (AudioChannels)Reader.Channels);
 
@@ -48,7 +48,7 @@ namespace BaselessJumping.GameContent
         private void DynamicSoundInstance_BufferNeeded(object sender, EventArgs e)
         {
             ChatText.NewText("Buffer was needed!");
-            Reader = new(Path.Combine(BJGame.Instance.Content.RootDirectory, path + ".ogg"));
+            Reader = new(Path.Combine(Base.Instance.Content.RootDirectory, path + ".ogg"));
             GetBuffer();
             DynamicSoundInstance = new(Reader.SampleRate, (AudioChannels)Reader.Channels);
         }
@@ -108,7 +108,7 @@ namespace BaselessJumping.GameContent
                     volume = maxVolume;
             }
 
-            if (!BJGame.Instance.IsActive)
+            if (!Base.Instance.IsActive)
             {
                 if (!DynamicSoundInstance.IsPaused())
                 {

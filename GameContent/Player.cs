@@ -34,9 +34,9 @@ namespace BaselessJumping.GameContent
 
         public Powerup[] Powerups { get; } = new Powerup[MAX_POWERUPS];
 
-        public Item HeldItem => inventory[heldItemId];
+        public Item HeldItem => inventory[_heldId];
 
-        private int heldItemId;
+        private int _heldId;
         public Keybind ControlDown { get; set; }
         public Keybind ControlUp { get; set; }
         public Keybind ControlLeft { get; set; }
@@ -47,22 +47,21 @@ namespace BaselessJumping.GameContent
         public Rectangle hitbox;
 
         public Vector2 Top => new(position.X + (hitbox.X / 2), position.Y);
-
         public Vector2 Bottom => new(position.X + (hitbox.X / 2), position.Y + hitbox.Height);
-
         public Vector2 Left => new(position.X, position.Y + (hitbox.Y / 2));
-
         public Vector2 Right => new(position.X + hitbox.X, position.Y + (hitbox.Y / 2));
 
         public readonly int width;
         public readonly int height;
         public int direction = 1;
-        public GameStopwatch respawnTimer = new();
         public int respawnTime = 180;
 
         private Texture2D texture;
 
         public float gravity = 1f;
+
+        /// <summary>The amount of life restored after every given tick.</summary>
+        public double lifeRegen = 0.25f;
 
         public bool IsCollidingFloor { get; private set; }
         public bool IsCollidingWallLeft { get; private set; }
@@ -73,6 +72,8 @@ namespace BaselessJumping.GameContent
         public bool alive = true;
 
         public GameStopwatch[] pickupCooldowns = new GameStopwatch[Item.TOTAL_ITEMS];
+        public GameStopwatch respawnTimer = new();
+        public GameStopwatch timeSinceLastDamageTaken = new();
 
         private bool IsMoving => ControlLeft.IsPressed || ControlRight.IsPressed;
 
@@ -101,7 +102,7 @@ namespace BaselessJumping.GameContent
 
         public void Update()
         {
-            heldItemId = (int)MathHelper.Clamp(heldItemId, 0, 2);
+            _heldId = (int)MathHelper.Clamp(_heldId, 0, 2);
             // TODO: finish prim trail
             if (alive)
             {
@@ -110,14 +111,12 @@ namespace BaselessJumping.GameContent
                 if (!IngameConsole.Enabled)
                     UpdateInput();
                 if (ControlThrowItem.JustPressed)
-                    ThrowItem(heldItemId, out var s);
+                    ThrowItem(_heldId, out var s);
                 UpdateMovement();
                 GetTeam();
 
-                if (!hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100)))
-                {
+                if (!hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100))) // this is a box that extends slightly around the window.
                     Kill();
-                }
                 if (!IngameConsole.cheats_noclip)
                 {
                     velocity.Y += 0.15f * gravity;
@@ -129,6 +128,7 @@ namespace BaselessJumping.GameContent
             else
                 UpdateDead();
         }
+
         private void UpdateBlockCollision()
         {
             var offset = velocity;
@@ -138,7 +138,6 @@ namespace BaselessJumping.GameContent
                 Collision.CollisionInfo collisionInfo = new();
 
                 collisionInfo.tValue = 1f;
-
                 foreach (var block in Block.Blocks)
                 {
                     if (block != null)
@@ -199,10 +198,12 @@ namespace BaselessJumping.GameContent
                 }
             }
         }
+
         private void UpdateRecieveAttack()
         {
 
         }
+
         private void UpdateMovement()
         {
             if (IsCollidingFloor && !IsMoving && velocity.Y == 0)
@@ -219,6 +220,7 @@ namespace BaselessJumping.GameContent
                 }
             }
         }
+
         private void UpdateInput()
         {
             if (ControlJump.JustPressed)
@@ -244,15 +246,16 @@ namespace BaselessJumping.GameContent
             if (Input.FirstPressedKey.IsNum(out int num))
             {
                 if (num < 4)
-                    heldItemId = num;
+                    _heldId = num;
             }
 
             if (Input.MouseMiddle)
             {
                 position = GameUtils.MousePosition;
-                velocity = GameUtils.GetMouseVelocity();
+                velocity = GameUtils.GetMouseVelocity() / 8;
             }
         }
+
         private Color GetTeam()
         {
             Color getTeamColor()
@@ -278,15 +281,26 @@ namespace BaselessJumping.GameContent
             }
             return getTeamColor();
         }
+
         private void UpdateLife()
         {
-            healthBar.currentLife = MathHelper.Clamp((float)healthBar.currentLife, 0, (float)healthBar.maxLife);
             if (!IngameConsole.immortal)
             {
                 if (healthBar.currentLife <= 0)
                     Kill();
             }
+            #region LifeRegen
+
+            if (timeSinceLastDamageTaken.ElapsedGameTicks > 120) // maybe un-hardcode this soon.
+            {
+                healthBar.HealLife(lifeRegen);
+            }
+
+            healthBar.currentLife = MathHelper.Clamp((float)healthBar.currentLife, 0, (float)healthBar.maxLife);
+
+            #endregion
         }
+
         private void UpdateDead()
         {
             velocity = Vector2.Zero;
@@ -301,6 +315,7 @@ namespace BaselessJumping.GameContent
                 respawnTimer.Restart();
                 respawnTimer.Stop();
             }
+            timeSinceLastDamageTaken.Restart();
         }
 
         public bool Spawn(Vector2 position)
@@ -340,7 +355,9 @@ namespace BaselessJumping.GameContent
         public void Damage(double damage)
         {
             healthBar.DeductLife(damage);
+            timeSinceLastDamageTaken.Restart();
         }
+
         public void Heal(double life)
         {
             healthBar.HealLife(life);
@@ -389,21 +406,23 @@ namespace BaselessJumping.GameContent
         {
             if (alive)
             {
-                var sb = BJGame.spriteBatch;
+                var sb = Base.spriteBatch;
                 sb.Draw(texture, hitbox, Color.White);
                 GameUtils.DrawHealthBar(healthBar, position + new Vector2(0, 15), 1f, 5f);
+                if (hitbox.Contains(GameUtils.MousePosition.ToPoint()))
+                    GameUtils.DrawStringQuick($"{healthBar.currentLife} / {healthBar.maxLife}", position + new Vector2(0, 30));
                 int x = 0;
                 foreach (var i in inventory)
                 {
                     if (i != null)
-                        sb.DrawString(BJGame.Fonts.Go, $"{i} : {x}", position - new Vector2(0, 20 * x), Color.White, 0f, BJGame.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, default, 0f);
+                        sb.DrawString(Base.Fonts.Go, $"{i} : {x}", position - new Vector2(0, 20 * x), Color.White, 0f, Base.Fonts.Go.MeasureString(ToString()) / 2, 0.25f, default, 0f);
                     x++;
                 }
-                sb.DrawString(BJGame.Fonts.Go, $"{OnBlockType} | held: {heldItemId}", position - new Vector2(0, 20), Color.White, 0f, BJGame.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
+                sb.DrawString(Base.Fonts.Go, $"{OnBlockType} | held: {_heldId}", position - new Vector2(0, 20), Color.White, 0f, Base.Fonts.Go.MeasureString($"{OnBlockType}") / 2, 0.25f, default, 0f);
             }
         }
 
-        public void Initialize()
+        internal void Initialize()
         {
             GameUtils.PopulateArray(ref pickupCooldowns);
 
@@ -416,6 +435,7 @@ namespace BaselessJumping.GameContent
 
             foreach (var cd in pickupCooldowns)
                 cd?.Start();
+            timeSinceLastDamageTaken.Start();
 
             for (int i = 0; i < 101; i++)
                 oldPositions.Add(position);

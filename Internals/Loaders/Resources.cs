@@ -27,7 +27,7 @@ namespace BaselessJumping.Internals.Loaders
 
 		public static T GetGameResource<T>(string name) where T : class
         {
-			return GetResource<T>(BJGame.Instance.Content, name);
+			return GetResource<T>(Base.Instance.Content, name);
         }
 	}
 }

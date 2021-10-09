@@ -46,5 +46,12 @@ namespace BaselessJumping.Internals
 
         internal void IncreaseTimer()
             => ElapsedGameTicks++;
+
+        // when you come back -> make countdown available for player regen cooldown
+    }
+
+    public class CountdownTimer : GameStopwatch
+    {
+        // ehh idk
     }
 }

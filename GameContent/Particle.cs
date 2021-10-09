@@ -39,7 +39,7 @@ namespace BaselessJumping.GameContent
 
             id = index;
 
-            defTexture = BJGame.Instance.Content.GetResource<Texture2D>("Particle");
+            defTexture = Base.Instance.Content.GetResource<Texture2D>("Particle");
 
             active = true;
             particles[id] = this;
@@ -59,7 +59,7 @@ namespace BaselessJumping.GameContent
         }
         public void Draw()
         {
-            BJGame.spriteBatch.Draw(defTexture, position, null, color, rotation, defTexture.Size() / 2, scale, default, 0f);
+            Base.spriteBatch.Draw(defTexture, position, null, color, rotation, defTexture.Size() / 2, scale, default, 0f);
             // GameUtils.DrawStringQuick(id, position + new Vector2(0, -30));
         }
 

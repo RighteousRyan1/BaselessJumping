@@ -41,16 +41,16 @@ namespace BaselessJumping.GameContent
             if (!displayAllChatTexts && whoAmI < TotalTexts.Count - 5)
                 active = false;
         }
-        internal static void DrawAllButtons()
+        internal static void DrawAll()
         {
             int i = 0;
             foreach (var txt in TotalTexts)
             {
                 if (txt.active)
                 {
-                    var orig = BJGame.Fonts.SilkPixel.MeasureString(txt.text);
+                    var orig = Base.Fonts.SilkPixel.MeasureString(txt.text);
                     var orig2 = new Vector2(0, orig.Y / 2);
-                    BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, txt.text, new Vector2(20, GameUtils.WindowHeight - 40 - (20 * i)), txt.color, 0f, orig2, 0.5f, default, 0f);
+                    Base.spriteBatch.DrawString(Base.Fonts.SilkPixel, txt.text, new Vector2(20, GameUtils.WindowHeight - 40 - (20 * i)), txt.color, 0f, orig2, 0.5f, default, 0f);
                     i++;
                 }
             }

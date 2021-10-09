@@ -23,7 +23,7 @@ namespace BaselessJumping.GameContent
         public Background(string texturePath)
         {
             id = Backgrounds.Count;
-            Texture = BJGame.Instance.Content.GetResource<Texture2D>(texturePath);
+            Texture = Base.Instance.Content.GetResource<Texture2D>(texturePath);
 
             Backgrounds.Add(this);
         }
@@ -58,7 +58,7 @@ namespace BaselessJumping.GameContent
             {
                 if (currentBGId == bg.id)
                 {
-                    BJGame.spriteBatch.Draw(bg.Texture, new Rectangle(0, 0, GameUtils.WindowWidth, GameUtils.WindowHeight), Color.White * bg.Alpha);
+                    Base.spriteBatch.Draw(bg.Texture, new Rectangle(0, 0, GameUtils.WindowWidth, GameUtils.WindowHeight), Color.White * bg.Alpha);
                 }
             }
         }

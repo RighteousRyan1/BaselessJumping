@@ -110,7 +110,7 @@ namespace BaselessJumping.Internals.Common.GameUI
         }
         public override void Draw()
         {
-            BJGame.spriteBatch.Draw(texture, drawPosition, null, color, rotation, Origin, scale, SpriteFX, 0f);
+            Base.spriteBatch.Draw(texture, drawPosition, null, color, rotation, Origin, scale, SpriteFX, 0f);
         }
         public override string ToString()
         {

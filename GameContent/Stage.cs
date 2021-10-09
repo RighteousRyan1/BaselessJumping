@@ -29,7 +29,7 @@ namespace BaselessJumping.GameContent
 
         public static void SaveStage(Stage stage)
         {
-            string root = Path.Combine(BJGame.ExePath, "Stages");
+            string root = Path.Combine(Base.ExePath, "Stages");
             string path = Path.Combine(root, $"{stage.Name}.stg");
             if (!Directory.Exists(root))
                 Directory.CreateDirectory(root);
@@ -82,7 +82,7 @@ namespace BaselessJumping.GameContent
 
         public static Stage LoadStage(string fileName)
         {
-            string root = Path.Combine(BJGame.ExePath, "Stages");
+            string root = Path.Combine(Base.ExePath, "Stages");
             string path = Path.Combine(root, $"{fileName}.stg");
             if (!Directory.Exists(root))
                 Directory.CreateDirectory(root);

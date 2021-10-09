@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using BaselessJumping.GameContent;
+using BaselessJumping.GameContent.Shapes;
+using BaselessJumping.Internals;
 using BaselessJumping.Internals.Common;
 using BaselessJumping.Internals.Common.GameInput;
 using BaselessJumping.Internals.Loaders;
@@ -18,12 +20,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BaselessJumping
 {
-	public class BJGame : Game
+	public class Base : Game
 	{
 		public static string GameVersion => "v1.0";
 		public static string AssemblyVersion => "0.1";
 
-		public static BJGame Instance { get; private set; }
+		public static Base Instance { get; private set; }
 		public static SpriteBatch spriteBatch;
 		public readonly GraphicsDeviceManager GDManager;
 		public static string ProjectPath => Directory.GetCurrentDirectory();
@@ -31,13 +33,23 @@ namespace BaselessJumping
 		private static bool _displayMiscInfo;
 		private static bool _showBoundKeybinds;
 		public struct Fonts
-        {
+		{
 			public static SpriteFont SilkPixel;
 			public static SpriteFont Go;
 			public static SpriteFont Komika;
 			public static SpriteFont Lato;
 			public static SpriteFont Amatic;
 		}
+
+		private Stopwatch _contentLoadTimer = new();
+		private Stopwatch _gameUpdateTime = new();
+		private Stopwatch _renderUpdateTime = new();
+
+		public static TimeSpan LogicTime { get; private set; } = new();
+		public static TimeSpan RenderTime { get; private set; } = new();
+
+		public static double RenderFPS { get; private set; } = 0;
+		public static double LogicFPS { get; private set; } = 0;
 
 		/*public struct Sounds
         {
@@ -66,7 +78,7 @@ namespace BaselessJumping
 			public static Texture2D GrassBlock;
 		}*/
 
-		public BJGame() : base()
+		public Base() : base()
 		{
 			IsFixedTimeStep = true;
 			Instance = this;
@@ -76,28 +88,34 @@ namespace BaselessJumping
 			Window.Title = $"Baseless Jumping: {Lang.GetRandomGameTitle()}";
 		}
 
-        protected override void Initialize()
+		protected override void Initialize()
 		{
 			GDManager.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
 			GDManager.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height - 60;
 			GDManager.ApplyChanges();
 			AssetsAndOtherInit();
 			base.Initialize();
-        }
-        protected override void OnExiting(object sender, EventArgs args)
-        {
-			GameContent.GameManager.Exit();
-        }
-
-        protected override void LoadContent()
+		}
+		protected override void OnExiting(object sender, EventArgs args)
 		{
+			GameManager.Exit();
+			RPCHandler.Terminate();
+		}
+
+		protected override void LoadContent()
+		{
+			_contentLoadTimer.Start();
 			LoadGameContent();
 			GameManager.Init();
 			base.LoadContent();
-        }
+
+			_contentLoadTimer.Stop();
+			Console.WriteLine($"Load time for game assets: {_contentLoadTimer.Elapsed}");
+		}
 
 		protected override void Update(GameTime gameTime)
-        {
+		{
+			_gameUpdateTime.Start();
 			Input.HandleInput();
 			GameManager.LastCapturedGameTime = gameTime;
 			if (Input.KeyJustPressed(Keys.Delete))
@@ -106,15 +124,22 @@ namespace BaselessJumping
 				_displayMiscInfo = !_displayMiscInfo;
 			if (Input.KeyJustPressed(Keys.Home))
 				_showBoundKeybinds = !_showBoundKeybinds;
-
 			GameManager.Update();
 
 			Input.OldKeySnapshot = Input.CurrentKeySnapshot;
 			Input.OldMouseSnapshot = Input.CurrentMouseSnapshot;
+
+			LogicTime = _gameUpdateTime.Elapsed;
+
+			LogicFPS = Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds, 2);
+
+			_gameUpdateTime.Restart();
 		}
 
 		protected override void Draw(GameTime gameTime)
         {
+			_renderUpdateTime.Start();
+
 			GraphicsDevice.Clear(Color.Black);
 			spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
 			GameManager.Draw();
@@ -162,6 +187,11 @@ namespace BaselessJumping
 			spriteBatch.Begin();
 			Triangle.DrawVertexHierarchies();
 			spriteBatch.End();
+
+			RenderTime = _renderUpdateTime.Elapsed;
+			RenderFPS = Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds, 2);
+
+			_renderUpdateTime.Restart();
 		}
 
 		private void AssetsAndOtherInit()
@@ -222,8 +252,9 @@ namespace BaselessJumping
 		{
 			DllManager.AttachResolver(Assembly.GetExecutingAssembly());
 			DllManager.AttachResolver(Assembly.GetAssembly(typeof(Game)));
+			// DllManager.AttachResolver(Assembly.LoadFrom(Path.Combine(Base.ProjectPath, "References", "Native", "x64", "SDL2.dll")));
 
-			new BJGame().Run();
+			new Base().Run();
 		}
 	}
 }

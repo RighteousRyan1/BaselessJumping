@@ -14,7 +14,7 @@ namespace BaselessJumping.GameContent
         public static Block[,] Blocks = new Block[1000, 1000];
 
         public int id;
-        private int _oldId;
+        private bool _oldActive;
 
         public const int MAX_BLOCKS = 16000;
         private readonly int amount_current_blocks = 0;
@@ -36,11 +36,11 @@ namespace BaselessJumping.GameContent
         {
             get
             {
-                int curId = id;
+                bool act = Active;
 
-                var getChange = curId > 0 && _oldId == 0;
+                var getChange = act && !_oldActive;
 
-                _oldId = curId;
+                _oldActive = act;
 
                 return getChange;
             }
@@ -138,6 +138,8 @@ namespace BaselessJumping.GameContent
             Blocks[X, Y] = this;
         }
 
+        bool x = false;
+
         internal void Update()
         {
             Update_PerType();
@@ -153,9 +155,9 @@ namespace BaselessJumping.GameContent
             {
                 texture = id switch
                 {
-                    1 => Resources.GetGameResource<Texture2D>("GrassBlock"),
-                    2 => Resources.GetGameResource<Texture2D>("StoneBlock"),
-                    _ => Resources.GetGameResource<Texture2D>("Block_Missing"),
+                    1 => Resources.GetGameResource<Texture2D>($"GrassBlock"),
+                    2 => Resources.GetGameResource<Texture2D>($"StoneBlock"),
+                    _ => Resources.GetGameResource<Texture2D>($"Block_Missing"),
                 };
             }
         }
@@ -209,7 +211,7 @@ namespace BaselessJumping.GameContent
             }
             bool getRightUpDownFrame()
             {
-                bool checkRight = right.FramingStyle == TileFraming.FacingRight;
+                bool checkRight = right.FramingStyle == TileFraming.FacingRight || right.FramingStyle == TileFraming.LeftRight;
                 bool checkLeft = left.Active;
                 bool checkUp = up.Active; // up.FramingStyle == TileFraming.TopRight;
                 bool checkDown = down.Active; // down.FramingStyle == TileFraming.BottomRight;
@@ -218,7 +220,7 @@ namespace BaselessJumping.GameContent
             }
             bool getLeftUpDownFrame()
             {
-                bool checkLeft = left.FramingStyle == TileFraming.FacingLeft;
+                bool checkLeft = left.FramingStyle == TileFraming.FacingLeft || left.FramingStyle == TileFraming.LeftRight;
                 bool checkRight = right.Active;
                 bool checkUp = up.Active; //up.FramingStyle == TileFraming.TopLeft;
                 bool checkDown = down.Active; //down.FramingStyle == TileFraming.BottomLeft;
@@ -229,7 +231,7 @@ namespace BaselessJumping.GameContent
             {
                 bool checkLeft = left.Active;//left.FramingStyle == TileFraming.TopLeft;
                 bool checkDown = down.Active;
-                bool checkUp = up.FramingStyle == TileFraming.Up;
+                bool checkUp = up.FramingStyle == TileFraming.Up || up.FramingStyle == TileFraming.UpDown;
                 bool checkRight = right.Active; //right.FramingStyle == TileFraming.TopRight;
 
                 return checkDown && checkUp && checkRight && checkLeft;
@@ -237,7 +239,7 @@ namespace BaselessJumping.GameContent
             bool getDownLeftRightFrame()
             {
                 bool checkLeft = left.Active;//left.FramingStyle == TileFraming.BottomLeft;
-                bool checkDown = down.FramingStyle == TileFraming.Down;
+                bool checkDown = down.FramingStyle == TileFraming.Down || down.FramingStyle == TileFraming.UpDown;
                 bool checkUp = up.Active;
                 bool checkRight = right.Active;//right.FramingStyle == TileFraming.BottomRight;
 
@@ -520,16 +522,14 @@ namespace BaselessJumping.GameContent
                         break;
                 }
             }
-            BJGame.spriteBatch.Draw(texture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
-                // BJGame.spriteBatch.DrawString(BJGame.Fonts.Amatic, "X", Right, Color.White, 0f, Vector2.Zero, 0.5f, default, default);
+            Base.spriteBatch.Draw(texture, new Rectangle(xWorld, yWorld, 16, 16), frame, Color, 0f, Vector2.Zero, default, 0f);
+            //Internals.Common.Utilities.GameUtils.DrawStringQuick(FramingStyle, Center, 0.7f);
         }
         public override string ToString()
         {
             return $"X: {X} | Y: {Y} | xW: {xWorld} | yW: {yWorld} | HasCollision: {HasCollision} | color: {Color}";
         }
-
-        public static Block Get(int x, int y) => Blocks[x, y];
-        public static Block Get(float x, float y) => Blocks[(int)x, (int)y];
+        public static Block GetByFloat(float x, float y) => Blocks[(int)x, (int)y];
 
         public static class ID
         {

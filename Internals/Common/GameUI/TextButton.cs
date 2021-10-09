@@ -27,7 +27,7 @@ namespace BaselessJumping.Internals.Common.GameUI
         public Color color = Color.White;
         public Color borderColor;
         public string text = "N/A";
-        public SpriteFont font = BJGame.Fonts.SilkPixel;
+        public SpriteFont font = Base.Fonts.SilkPixel;
         public SpriteEffects SpriteFX { get; set; } = default;
         public Rectangle HoverBox { get; private set; }
         public bool JustClicked { get; private set; }
@@ -134,7 +134,7 @@ namespace BaselessJumping.Internals.Common.GameUI
             if (border)
                 GameUtils.DrawTextWithBorder(font, text, drawPosition, color, borderColor, 0f, scale, 2);
             else
-                BJGame.spriteBatch.DrawString(font, text, drawPosition, color, rotation, Origin, scale, SpriteFX, 0f);
+                Base.spriteBatch.DrawString(font, text, drawPosition, color, rotation, Origin, scale, SpriteFX, 0f);
         }
         public override string ToString()
         {

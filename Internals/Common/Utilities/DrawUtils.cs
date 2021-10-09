@@ -22,7 +22,7 @@ namespace BaselessJumping.Internals.Common.Utilities
 
         public static void DrawDebugBox(Rectangle box)
         {
-            BJGame.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), box, Color.White * 0.5f);
+            Base.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), box, Color.White * 0.5f);
         }
     }
 }

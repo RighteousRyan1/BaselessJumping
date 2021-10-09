@@ -5,7 +5,7 @@ using BaselessJumping.Internals.Common.Utilities;
 using System.Collections.Generic;
 using BaselessJumping.Internals.Core.Exceptions;
 
-namespace BaselessJumping.GameContent
+namespace BaselessJumping.GameContent.Shapes
 {
     public class Triangle : IDisposable
     {
@@ -17,9 +17,9 @@ namespace BaselessJumping.GameContent
         public Matrix World { get; }
         public Matrix View { get; }
         public Matrix Projection { get; }
-        public static readonly VertexPositionColor[] vertices = new VertexPositionColor[3];
+        public static readonly VertexPositionColor[] vertColors = new VertexPositionColor[3];
 
-        public Vector2[] verticePositions = new Vector2[vertices.Length];
+        public Vector2[] vertices = new Vector2[vertColors.Length];
 
         public Color color;
 
@@ -32,41 +32,39 @@ namespace BaselessJumping.GameContent
         public Triangle(Vector2 pos1, Vector2 pos2, Vector2 pos3, Color color)
         {
             World = Matrix.CreateTranslation(0, 0, 0);
-            View = Matrix.Identity;//Matrix.CreateLookAt(new Vector3(0, 0, 3), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-            Projection = Matrix.CreateOrthographicOffCenter(0, GameUtils.WindowWidth, GameUtils.WindowHeight, 0, -1, 1); //Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), 800f / 480f, 0.01f, 100f);
-            Effect = new(BJGame.Instance.GraphicsDevice);
+            View = Matrix.Identity;
+            Projection = Matrix.CreateOrthographicOffCenter(0, GameUtils.WindowWidth, GameUtils.WindowHeight, 0, -1, 1);
+            Effect = new(Base.Instance.GraphicsDevice);
             this.color = color;
-            verticePositions[0] = pos1;
-            verticePositions[1] = pos2;
-            verticePositions[2] = pos3;
-            VertexBuffer = new(BJGame.Instance.GraphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.WriteOnly);
+            vertices[0] = pos1;
+            vertices[1] = pos2;
+            vertices[2] = pos3;
+            VertexBuffer = new(Base.Instance.GraphicsDevice, typeof(VertexPositionColor), vertColors.Length, BufferUsage.WriteOnly);
             triangles.Add(this);
         }
 
         public void DrawImmediate()
         {
-            //float sin = (float)Math.Sin(GameManager.LastCapturedGameTime.TotalGameTime.TotalSeconds);
-            //var player = GameManager.PlayerOne;
-            vertices[0] = new VertexPositionColor(new Vector3(verticePositions[0], 0), color);
-            vertices[1] = new VertexPositionColor(new Vector3(verticePositions[1], 0), color);
-            vertices[2] = new VertexPositionColor(new Vector3(verticePositions[2], 0), color);
-            VertexBuffer.SetData(vertices);
+            vertColors[0] = new VertexPositionColor(new Vector3(vertices[0], 0), color);
+            vertColors[1] = new VertexPositionColor(new Vector3(vertices[1], 0), color);
+            vertColors[2] = new VertexPositionColor(new Vector3(vertices[2], 0), color);
+            VertexBuffer.SetData(vertColors);
 
             Effect.World = World;
             Effect.View = View;
             Effect.Projection = Projection;
             Effect.VertexColorEnabled = true;
 
-            BJGame.Instance.GraphicsDevice.SetVertexBuffer(VertexBuffer);
+            Base.Instance.GraphicsDevice.SetVertexBuffer(VertexBuffer);
 
             RasterizerState rasterizerState = new();
             rasterizerState.CullMode = CullMode.None;
-            BJGame.Instance.GraphicsDevice.RasterizerState = rasterizerState;
+            Base.Instance.GraphicsDevice.RasterizerState = rasterizerState;
 
             foreach (var pass in Effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                BJGame.Instance.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 1);
+                Base.Instance.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 1);
             }
         }
 
@@ -74,11 +72,11 @@ namespace BaselessJumping.GameContent
         {
             for (int i = 0; i < triangles.Count; i++)
             {
-                var trail = triangles[i];
+                var triangle = triangles[i];
                 int j = 0;
-                foreach (var pos in trail.verticePositions)
+                foreach (var pos in triangle.vertices)
                 {
-                    BJGame.spriteBatch.DrawString(BJGame.Fonts.SilkPixel, j.ToString(), pos, Color.White, 0f, Vector2.Zero, 0.5f, default, 0f);
+                    Base.spriteBatch.DrawString(Base.Fonts.SilkPixel, j.ToString(), pos, Color.White, 0f, Base.Fonts.SilkPixel.MeasureString(j.ToString()) / 2, 0.5f, default, 0f);
                     j++;
                 }
             }
@@ -96,7 +94,7 @@ namespace BaselessJumping.GameContent
         {
             if (!CheckValidSide(this, side))
                 throw new TriangleRelatedException("The side you tried to find was invalid.", side);
-            return side < 2 ? Vector2.Distance(verticePositions[side], verticePositions[side + 1]) : Vector2.Distance(verticePositions[2], verticePositions[0]);
+            return side < 2 ? Vector2.Distance(vertices[side], vertices[side + 1]) : Vector2.Distance(vertices[2], vertices[0]);
         }
 
         public float SideAdditionPostulate()
@@ -116,7 +114,7 @@ namespace BaselessJumping.GameContent
         {
             if (!CheckValidSide(this, side))
                 throw new TriangleRelatedException("The side you tried to find was invalid.", side);
-            return side < 2 ? (verticePositions[side] + verticePositions[side + 1]) : (verticePositions[2] + verticePositions[0]) / 2;
+            return side < 2 ? (vertices[side] + vertices[side + 1]) : (vertices[2] + vertices[0]) / 2;
         }
 
         /// <summary>
@@ -159,6 +157,6 @@ namespace BaselessJumping.GameContent
             => !IsRight() && !IsIcoceles();
 
         private static bool CheckValidSide(Triangle triangle, int side)
-            => side < triangle.verticePositions.Length && side >= 0;
+            => side < triangle.vertices.Length && side >= 0;
     }
 }

@@ -77,7 +77,7 @@ namespace BaselessJumping.GameContent
         {
             OnPreDraw?.Invoke(this, new());
 
-            BJGame.spriteBatch.Draw(GameAssets.ItemTexture[id], position, null, Color.White, rotation, GameAssets.ItemTexture[id].Size() / 2, scale, default, 0f);
+            Base.spriteBatch.Draw(GameAssets.ItemTexture[id], position, null, Color.White, rotation, GameAssets.ItemTexture[id].Size() / 2, scale, default, 0f);
             GameUtils.DrawStringQuick(this, position + new Vector2(0, 25));
             // DrawUtils.DrawDebugBox(hitbox);
 

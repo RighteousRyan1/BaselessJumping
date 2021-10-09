@@ -60,8 +60,8 @@ namespace BaselessJumping.Internals.Common.Utilities
         public static int MouseY => (int)MousePosition.Y;
         public static int MouseX_TBC => (int)MousePosition.X / 16;
         public static int MouseY_TBC => (int)MousePosition.Y / 16;
-        public static int WindowWidth => BJGame.Instance.Window.ClientBounds.Width;
-        public static int WindowHeight => BJGame.Instance.Window.ClientBounds.Height;
+        public static int WindowWidth => Base.Instance.Window.ClientBounds.Width;
+        public static int WindowHeight => Base.Instance.Window.ClientBounds.Height;
         public static Vector2 WindowBounds => new(WindowWidth, WindowHeight);
         public static Vector2 WindowCenter => WindowBounds / 2;
         public static Vector2 WindowBottom => new(WindowWidth / 2, WindowHeight);
@@ -92,9 +92,9 @@ namespace BaselessJumping.Internals.Common.Utilities
                     yOffset = borderSize;
 
 
-                BJGame.spriteBatch.DrawString(font, text, pos + new Vector2(xOffset, yOffset), borderColor, rot, origin, scale, default, 0f);
+                Base.spriteBatch.DrawString(font, text, pos + new Vector2(xOffset, yOffset), borderColor, rot, origin, scale, default, 0f);
             }
-            BJGame.spriteBatch.DrawString(font, text, pos, color, rot, origin, scale, default, 0f);
+            Base.spriteBatch.DrawString(font, text, pos, color, rot, origin, scale, default, 0f);
         }
         public static void DrawTextureWithBorder(Texture2D texture, Vector2 pos, Color color, Color borderColor, float rot, float scale, int borderSize)
         {
@@ -113,9 +113,9 @@ namespace BaselessJumping.Internals.Common.Utilities
                     yOffset = borderSize;
 
 
-                BJGame.spriteBatch.Draw(texture, pos + new Vector2(xOffset, yOffset), null, borderColor, rot, origin, scale, default, 0f);
+                Base.spriteBatch.Draw(texture, pos + new Vector2(xOffset, yOffset), null, borderColor, rot, origin, scale, default, 0f);
             }
-            BJGame.spriteBatch.Draw(texture, pos, null, color, rot, origin, scale, default, 0f);
+            Base.spriteBatch.Draw(texture, pos, null, color, rot, origin, scale, default, 0f);
         }
         public static T[,] Resize2D<T>(T[,] original, int rows, int cols)
         {
@@ -128,7 +128,7 @@ namespace BaselessJumping.Internals.Common.Utilities
             return newArray;
         }
         public static Point ToPoint(this Vector2 vector2) => new((int)vector2.X, (int)vector2.Y);
-        public static bool WindowActive => BJGame.Instance.IsActive;
+        public static bool WindowActive => Base.Instance.IsActive;
         public static T PickRandom<T>(T[] input)
         {
             int rand = new Random().Next(0, input.Length);
@@ -155,8 +155,8 @@ namespace BaselessJumping.Internals.Common.Utilities
             chosen.Clear();
             return values;
         }
-        public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
-        public static void DrawStringQuick(object text, Vector2 position) => BJGame.spriteBatch.DrawString(BJGame.Fonts.Komika, text.ToString(), position, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
+        public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => Base.spriteBatch.DrawString(Base.Fonts.Komika, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
+        public static void DrawStringQuick(object text, Vector2 position, float scale = 1f, Vector2 anchor = default) => Base.spriteBatch.DrawString(Base.Fonts.Komika, text.ToString(), position, Color.White, 0f, anchor == default ? Base.Fonts.Komika.MeasureString(text.ToString()) / 2 : anchor, 0.25f * scale, default, 0f);
         public static bool IsPlaying(this SoundEffectInstance instance) => instance.State == SoundState.Playing;
         public static bool IsPaused(this SoundEffectInstance instance) => instance.State == SoundState.Paused;
         public static bool IsStopped(this SoundEffectInstance instance) => instance.State == SoundState.Stopped;
@@ -215,7 +215,7 @@ namespace BaselessJumping.Internals.Common.Utilities
             return new int[frameCount];
         }
         public static Vector2 GetNormalDisplay()
-            => new(BJGame.Instance.GraphicsDevice.Viewport.Width, BJGame.Instance.GraphicsDevice.Viewport.Height);
+            => new(Base.Instance.GraphicsDevice.Viewport.Width, Base.Instance.GraphicsDevice.Viewport.Height);
         public static void PopulateArray<T>(ref T[] array) where T : class, new()
         {
             for (int i = 0; i < array.Length; i++)
@@ -244,8 +244,8 @@ namespace BaselessJumping.Internals.Common.Utilities
         }
         public static void DrawHealthBar(HealthBar bar, Vector2 position, float width, float height)
         {
-            BJGame.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.maxLife * width), (int)height), Color.Red);
-            BJGame.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.currentLife * width), (int)height), Color.Green);
+            Base.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.maxLife * width), (int)height), Color.Red);
+            Base.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.currentLife * width), (int)height), Color.Green);
         }
 
         /// <summary>
@@ -261,6 +261,14 @@ namespace BaselessJumping.Internals.Common.Utilities
             var index = Array.IndexOf(array, ind);
 
             return index;
+        }
+
+
+        public static Vector2 FindMidpoint(Vector2 point1, Vector2 point2)
+        {
+            // var distance = MathF.Sqrt(MathF.Pow(point2.X - point1.X, 2) + MathF.Pow(point2.Y - point1.Y, 2));
+
+            return (point2 + point1) / 2;
         }
     }
 }
