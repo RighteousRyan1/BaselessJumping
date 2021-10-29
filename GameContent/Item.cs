@@ -22,7 +22,7 @@ namespace BaselessJumping.GameContent
 
         #region Shared Metadata
 
-        private static float _grabRange = 50f;
+        public static float grabRange = 50f;
 
         #endregion
 
@@ -110,7 +110,7 @@ namespace BaselessJumping.GameContent
                 {
                     var dist = player.Distance(this);
 
-                    if (dist < _grabRange * IngameConsole.bh_itemgrabrange)
+                    if (dist < grabRange)
                     {
                         player.GrabItem(this, out var pickedUp);
 

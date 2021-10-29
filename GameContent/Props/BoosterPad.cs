@@ -28,6 +28,7 @@ namespace BaselessJumping.GameContent.Props
 
         public BoosterPadDirection BoosterDirection { get; set; }
         public float pushScale = 0f;
+        public static float pushScaleExtra = 1f;
 
         private Texture2D bubbleTexture = Resources.GetGameResource<Texture2D>("Bubble");
         private Texture2D arrowTexture = Resources.GetGameResource<Texture2D>("Arrow");
@@ -93,7 +94,7 @@ namespace BaselessJumping.GameContent.Props
             {
                 if (player.hitbox.Intersects(hitbox))
                 {
-                    player.velocity += new Vector2(0, -pushScale * IngameConsole.phys_boosterpadpushscale).RotatedByRadians(radians);
+                    player.velocity += new Vector2(0, -pushScale * pushScaleExtra).RotatedByRadians(radians);
                 }
             }
         }

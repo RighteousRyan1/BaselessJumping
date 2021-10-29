@@ -16,6 +16,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace BaselessJumping.GameContent.Props
 {
+    /// <summary>
+    /// WIP for now
+    /// </summary>
     public class TextureChain
     {
         public Texture2D Texture { get; }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -17,11 +17,22 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Text.Json;
 
 namespace BaselessJumping
 {
 	public class Base : Game
 	{
+
+		public static JsonSerializerOptions JsonOptions_IncludeFields = new()
+		{
+			IncludeFields = true,
+			WriteIndented = true
+		};
+		public static JsonSerializerOptions DefaultJsonOPtions = new()
+		{
+			WriteIndented = true
+		};
 		public static string GameVersion => "v1.0";
 		public static string AssemblyVersion => "0.1";
 
@@ -50,34 +61,6 @@ namespace BaselessJumping
 
 		public static double RenderFPS { get; private set; } = 0;
 		public static double LogicFPS { get; private set; } = 0;
-
-		/*public struct Sounds
-        {
-			public static SoundEffect[] Steps = new SoundEffect[4];
-			public static SoundEffectInstance[] StepsI = new SoundEffectInstance[4];
-
-			public static SoundEffect PlayerDeath;
-			public static SoundEffectInstance PlayerDeathI;
-
-			public static SoundEffect BlockPlace;
-			public static SoundEffectInstance BlockPlaceI;
-
-			public static SoundEffect BlockBreak;
-			public static SoundEffectInstance BlockBreakI;
-		}
-
-		public struct Textures
-        {
-			public static Texture2D WhitePixel;
-			public static Texture2D UIButtonMedium;
-			public static Texture2D UIButtonLarge;
-
-			public static Texture2D UIBox;
-			public static Texture2D UIBoxChecked;
-
-			public static Texture2D GrassBlock;
-		}*/
-
 		public Base() : base()
 		{
 			IsFixedTimeStep = true;
@@ -106,7 +89,7 @@ namespace BaselessJumping
 		{
 			_contentLoadTimer.Start();
 			LoadGameContent();
-			GameManager.Init();
+			GameManager.Initialize();
 			base.LoadContent();
 
 			_contentLoadTimer.Stop();
@@ -137,7 +120,7 @@ namespace BaselessJumping
 		}
 
 		protected override void Draw(GameTime gameTime)
-        {
+		{
 			_renderUpdateTime.Start();
 
 			GraphicsDevice.Clear(Color.Black);
@@ -164,13 +147,13 @@ namespace BaselessJumping
 				int j = 0;
 				foreach (var keybind in Keybind.AllKeybinds)
 				{
-					spriteBatch.DrawString(Fonts.Lato, keybind.ToString(), 
-						_displayMiscInfo ? new Vector2(6, len + 15 + (15 * j)) : new Vector2(6, 15 * j), 
+					spriteBatch.DrawString(Fonts.Lato, keybind.ToString(),
+						_displayMiscInfo ? new Vector2(6, len + 15 + (15 * j)) : new Vector2(6, 15 * j),
 						Color.White, 0f, Vector2.Zero, 0.35f, default, default);
 
 					if (keybind.IsReassignPending)
 						spriteBatch.DrawString(Fonts.Lato,
-							$"Reassigning '{keybind.Name}' (Current Key: {keybind.AssignedKey})", 
+							$"Reassigning '{keybind.Name}' (Current Key: {keybind.AssignedKey})",
 							Drawing.ScreenBounds / 2 + new Vector2(6, 15 * j), Color.White, 0f, Vector2.Zero, 0.35f, default, default);
 
 					if (keybind.RecentlyBound)
@@ -195,7 +178,7 @@ namespace BaselessJumping
 		}
 
 		private void AssetsAndOtherInit()
-        {
+		{
 			if (Directory.Exists($"{ExePath}/Assets"))
 			{
 				foreach (string fileName in Directory.GetFiles($"{ExePath}/Assets"))
@@ -218,9 +201,9 @@ namespace BaselessJumping
 		}
 
 		private void LoadGameContent()
-        {
-            #region Content Loading
-            Fonts.SilkPixel = Content.Load<SpriteFont>("SilkPixel");
+		{
+			#region Content Loading
+			Fonts.SilkPixel = Content.Load<SpriteFont>("SilkPixel");
 			Fonts.Lato = Content.Load<SpriteFont>("Lato");
 			Fonts.Go = Content.Load<SpriteFont>("Go");
 			Fonts.Komika = Content.Load<SpriteFont>("Komika");
@@ -231,10 +214,8 @@ namespace BaselessJumping
 				Sounds.Steps[i] = Content.Load<SoundEffect>($"Step{i + 1}");
 				Sounds.StepsI[i] = Sounds.Steps[i].CreateInstance();
 			}
-
 			Sounds.BlockBreak = Content.Load<SoundEffect>($"BlockBreak");
 			Sounds.BlockBreakI = Sounds.BlockBreak.CreateInstance();
-
 			Textures.WhitePixel = Content.GetResource<Texture2D>("WhitePixel"); // Content.Load<Texture2D>("WhitePixel");
 			Textures.UIButtonMedium = Content.GetResource<Texture2D>("UIButtonMedium");
 			Textures.UIButtonLarge = Content.GetResource<Texture2D>("UIButtonLarge");
@@ -244,7 +225,7 @@ namespace BaselessJumping
 			Textures.GrassBlock = Content.Load<Texture2D>("GrassBlock");*/
 			#endregion
 		}
-    }
+	}
 	internal static class Program
 	{
 		[STAThread]

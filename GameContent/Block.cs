@@ -78,7 +78,7 @@ namespace BaselessJumping.GameContent
 
                 block.Active = false;
 
-                SoundPlayer.PlaySoundInstance(Resources.GetGameResource<SoundEffect>("BlockBreak"), 0.1f);
+                SoundPlayer.PlaySoundInstance(Resources.GetGameResource<SoundEffect>("BlockBreak"), SoundContext.Sound, 0.15f);
             }
             public static Block GetValidBlock(int i, int j)
             {
@@ -137,8 +137,6 @@ namespace BaselessJumping.GameContent
                 throw new Exception("Blocks amount was larger than " + nameof(MAX_BLOCKS) + $" ({MAX_BLOCKS})");
             Blocks[X, Y] = this;
         }
-
-        bool x = false;
 
         internal void Update()
         {

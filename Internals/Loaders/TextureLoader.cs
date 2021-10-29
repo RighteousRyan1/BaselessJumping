@@ -29,7 +29,7 @@ namespace BaselessJumping.Internals.Loaders
         }
 		public static Texture2D GetTexture(string path)
         {
-			return Base.Instance.Content.Load<Texture2D>(path);
+			return Resources.GetGameResource<Texture2D>(path);
         }
 	}
 }

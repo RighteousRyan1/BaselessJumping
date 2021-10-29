@@ -5,29 +5,42 @@ namespace BaselessJumping.Internals.UI
     public class UIParent
     {
         public static List<UIParent> TotalParents { get; private set; } = new();
+
         public List<UIElement> Elements { get; private set; } = new();
 
-        public bool Visible { get; set; } = true;
+        public bool Visible { get; set; } = false;
 
-        public void AppendElement(UIElement element)
-        {
-            TotalParents.Add(this);
-            Elements.Add(element);
-        }
+        public UIParent() => TotalParents.Add(this);
 
-        internal void UpdateElements()
+        public void AppendElements(params UIElement[] elements)
         {
-            if (Visible)
+            foreach (var elem in elements)
             {
-                foreach (var elem in UIElement.AllUIElements)
-                    elem.Update();
+                //TotalParents.Add(this);
+                Elements.Add(elem);
+                elem.Parent = this;
             }
         }
+        public void AppendElement(UIElement element)
+        {
+            //TotalParents.Add(this);
+            Elements.Add(element);
+            element.Parent = this;
+        }
+
+        public void RemoveElement(UIElement element)
+        {
+            Elements.Remove(element);
+            //if (Elements.Count <= 0)
+                //TotalParents.Remove(this);
+            element.Parent = null;
+        }
+
         internal void DrawElements()
         {
             if (Visible)
             {
-                foreach (var elem in UIElement.AllUIElements)
+                foreach (var elem in Elements)
                     elem.Draw();
             }
         }

@@ -5,6 +5,7 @@ using BaselessJumping.Internals.Common;
 using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.Loaders;
 using BaselessJumping.Internals;
+using System.Linq;
 
 namespace BaselessJumping.GameContent
 {
@@ -14,12 +15,10 @@ namespace BaselessJumping.GameContent
         public static float fadeSpeed = 0.01f;
 
         public float Alpha { get; private set; }
-        private static int currentBGId = -1;
+        internal static int currentBGId = -1;
 
         public Texture2D Texture { get; }
         public readonly int id;
-
-
         public Background(string texturePath)
         {
             id = Backgrounds.Count;
@@ -52,15 +51,11 @@ namespace BaselessJumping.GameContent
         }
         public static void DrawBGs()
         {
-            if (IngameConsole.draw_bg != 1)
+            if (!GameManager.SettingsService.drawBackgrounds)
                 return;
-            foreach (var bg in Backgrounds)
-            {
-                if (currentBGId == bg.id)
-                {
-                    Base.spriteBatch.Draw(bg.Texture, new Rectangle(0, 0, GameUtils.WindowWidth, GameUtils.WindowHeight), Color.White * bg.Alpha);
-                }
-            }
+
+            var bg = Backgrounds.First(x => x.id == currentBGId);
+            Base.spriteBatch.Draw(bg.Texture, new Rectangle(0, 0, GameUtils.WindowWidth, GameUtils.WindowHeight), Color.White * bg.Alpha);
         }
         /// <summary>
         /// Set the current background of the game (Set to -1 for none)

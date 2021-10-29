@@ -23,7 +23,7 @@ namespace BaselessJumping.Internals
         private static DiscordRpcClient _client;
         public static void Load()
         {
-            _rpc = new RichPresence() { Details = "Playing Baseless Jumping"};
+            _rpc = new RichPresence() { Details = "Playing Baseless Jumping" };
             _rpc.Assets = new();
             _client = new DiscordRpcClient("896203207062216734");
             _rpc.Timestamps = new Timestamps()
@@ -63,7 +63,8 @@ namespace BaselessJumping.Internals
         }
         public static void Terminate()
         {
-            _client?.UpdateEndTime(DateTime.UtcNow);
+            if (_client.IsInitialized)
+                _client?.UpdateEndTime(DateTime.UtcNow);
             _client?.Dispose();
         }
     }

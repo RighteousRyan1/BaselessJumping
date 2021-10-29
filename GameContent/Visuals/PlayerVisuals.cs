@@ -19,7 +19,6 @@ using BaselessJumping.GameContent.Props;
 using BaselessJumping.Internals.Audio;
 using BaselessJumping.Internals.Common.Utilities;
 using BaselessJumping.Internals.UI;
-using BaselessJumping.Internals.Common.GameUI;
 using BaselessJumping.MapGeneration;
 using BaselessJumping.GameContent.Shapes;
 

@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace BaselessJumping.Internals.Common
 {
-    public class StringComparator
+    public static class StringComparator
     {
         public static float CompareTo_GetSimilarity(string input, string comparingTo)
         {

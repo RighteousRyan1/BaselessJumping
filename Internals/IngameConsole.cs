@@ -21,43 +21,67 @@ namespace BaselessJumping.Internals
         public static bool Enabled { get; set; }
         // clientside too
 
-        #region Cheats
-        public static ConsoleCommand cheats_enable = new(0f, "Allows cheats on the server to be used.");
-        public static ConsoleCommand cheats_playerjumpheight = new(1f, "Changes the jump height of each player to {x} multiplier.", true);
-        public static ConsoleCommand cheats_playermovespeed = new(1f, "Changes the speed of each player to {x} multiplier.", true);
-        public static ConsoleCommand cheats_noclip = new(0f, "Enables noclip.", true);
+        private static IngameConsoleConfig _commands = new();
 
-        public static ConsoleCommand immortal = new(0f, "Makes the player immortal.", true);
-        #endregion
-        #region Rendering
-        public static ConsoleCommand draw_bg = new(1f, "Enable the drawing of backgrounds.");
-        #endregion
-        #region GamePhysics
-        public static ConsoleCommand phys_playerfriction = new(1f, "Change the friction of every player in the server.");
-        public static ConsoleCommand phys_boosterpadpushscale = new(1f, "Change the force applied by a booster pad by a multiplier of {x}.");
-        #endregion
-        #region Behaviour
-        public static ConsoleCommand bh_itemgrabrange = new(1f, "Modify the grab range for all items to players.");
-        #endregion
+        private static PropertyInfo[] ConsoleFields { get; } = _commands.GetType().GetProperties();
 
-        internal static FieldInfo[] ConsoleFields { get; } = typeof(IngameConsole).GetFields().Where(fld => fld.FieldType == typeof(ConsoleCommand)).ToArray();
-        private static FieldInfo[] AllFields { get; } = typeof(IngameConsole).GetFields();
-
-        public static void SubmitCommand(string fld, object arg)
+        public static void SubmitCommand(string cmd, object arg)
         {
             // get this to work soon
-            foreach (var field in ConsoleFields)
+            for (int i = 0; i < ConsoleFields.Length; i++)
             {
-                if (fld == field.Name)
+                var command = ConsoleFields[i];
+                if (cmd == command.Name)
                 {
-                    #region Special Use Cases 1
-                    if (((ConsoleCommand)field.GetValue(null)).RequiresCheats && cheats_enable != 1)
+                    var cmmd = (IConsoleCommand)command.GetValue(_commands);
+
+                    if (cmmd.RequiresCheats && !GameContent.GameManager.cheats)
+                    {
+                        Console.WriteLine($"Tried changing cvar {cmd} to {arg}, but Cheats_Enable is not True.");
+                        return;
+                    }
+                    else
+                    {
+                        var oldVal = command.GetValue(_commands);
+                        Console.WriteLine($"Set command '{cmd}' from '{oldVal}' to '{arg}'");
+
+                        /*var args = cmmd.GetType().GetGenericArguments()[0];
+
+                        var m = typeof(ConsoleCommand<>).MakeGenericType(args);
+
+                        m.GetProperty("Value").SetValue(m, arg);*/
+                        if (int.TryParse(arg.ToString(), out var val1))
+                        {
+                            var c = cmmd as IConsoleCommand<int>;
+                            c.Value = val1;
+                        }
+                        else if (bool.TryParse(arg.ToString(), out var val2))
+                        {
+                            var c = cmmd as IConsoleCommand<bool>;
+                            c.Value = val2;
+                        }
+                        else if (float.TryParse(arg.ToString(), out var val3))
+                        {
+                            var c = cmmd as IConsoleCommand<float>;
+                            c.Value = val3;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"'{arg}' does not match the return type of '{cmd}'");
+                        }
+
+                        return;
+                    }
+                }
+                if (cmd == command.Name)
+                {
+                    /* #region Special Use Cases 1
+                    if (((IConsoleCommand)field.GetValue(null)).RequiresCheats && _config.Cheats_Enabled != 1)
                     {
                         Console.WriteLine($"Command Submitted: '{fld}' | Cannot set value as cheats are not enabled!");
                         return;
                     }
                     #endregion
-                    // GameContent.BaselessJumping.BaseLogger.Write($"Command Submitted: '{fld}' | Value set from {field?.GetValue(null)} to {arg}", Logger.LogType.Info);
                     Console.WriteLine($"Command Submitted: '{fld}' | Value set from {(field?.GetValue(null) as ConsoleCommand).Value} to {arg}");
                     if (float.TryParse(arg.ToString(), out var newFloat))
                     {
@@ -65,19 +89,19 @@ namespace BaselessJumping.Internals
                         if (fld == "cheats_enable" && newFloat == 0f)
                         {
                             foreach (var cmd in ConsoleFields)
-                                if (((ConsoleCommand)cmd.GetValue(null)).RequiresCheats)
+                                if (((IConsoleCommand)cmd.GetValue(null)).RequiresCheats)
                                 {
-                                    ((ConsoleCommand)field.GetValue(null)).Value = 0f;
+                                    ((IConsoleCommand)field.GetValue(null)).Value = 0f;
                                 }
                         }
-                        ((ConsoleCommand)field.GetValue(null)).Value = newFloat;
+                        ((IConsoleCommand)field.GetValue(null)).Value = newFloat;
                     }
                     else
                     {
                         // GameContent.BaselessJumping.BaseLogger.Write($"Command Submitted: '{fld}' | Value found but entered value is not the same type as the field value!", Logger.LogType.Warn);
                         Console.WriteLine($"Command Submitted: '{fld}' | Value found but entered value is not the same type as the field value!");
                         return;
-                    }
+                    }*/
                     return;
 
                 }
@@ -106,7 +130,7 @@ namespace BaselessJumping.Internals
             MatchedStrings.Clear();
             if (Enabled)
             {
-                foreach (var fld in AllFields)
+                foreach (var fld in ConsoleFields)
                 {
                     List<string> names = new();
                     names.Add(fld.Name);
@@ -125,12 +149,16 @@ namespace BaselessJumping.Internals
                             {
                                 if (fld.Name == vals[0])
                                 {
-                                    Console.WriteLine(((ConsoleCommand)fld.GetValue(null)).Description);
+                                    var cmd = fld.GetValue(_commands) as IConsoleCommand;
+                                    Console.WriteLine(cmd.Description);
                                 }
                             }
                         }
                         if (vals.Length == 2)
+                        {
+                            Console.WriteLine(vals[0]);
                             SubmitCommand(vals[0], vals[1]);
+                        }
                         CurrentlyWrittenText = string.Empty;
                         break;
                     case 524296:
@@ -150,21 +178,71 @@ namespace BaselessJumping.Internals
             }
         }
     }
-    public class ConsoleCommand
+    /*public class ConsoleCommand<T> : IConsoleCommand<T>
     {
-        public float Value { get; set; }
+        public T Value { get; set; }
         public string Description { get; }
         public bool RequiresCheats { get; }
+        public bool Saveable { get; }
 
-        public ConsoleCommand(float value, string description, bool requiresCheats = false)
+        public ConsoleCommand(T value, string description, bool requiresCheats = false, bool saveable = true)
         {
             Value = value;
             Description = description;
             RequiresCheats = requiresCheats;
+            Saveable = saveable;
         }
 
-        public static implicit operator float(ConsoleCommand cmd) => cmd.Value;
-        public static implicit operator string(ConsoleCommand cmd) => cmd.Description;
-        public static implicit operator bool(ConsoleCommand cmd) => cmd.Value == 1f;
+        public static implicit operator string(ConsoleCommand<T> cmd) => cmd.Description;
+    }
+    public interface IConsoleCommand<T>
+    {
+        T Value { get; set; }
+        string Description { get; }
+        bool RequiresCheats { get; }
+        bool Saveable { get; }
+    }*/
+    public interface IConsoleCommand
+    {
+        string Description { get; }
+        bool RequiresCheats { get; }
+        bool Saveable { get; }
+    }
+
+    public interface IConsoleCommand<T> : IConsoleCommand
+    {
+        T Value { get; set; }
+    }
+
+    public class ConsoleCommand : IConsoleCommand
+    {
+        public string Description { get; }
+        public bool RequiresCheats { get; }
+        public bool Saveable { get; }
+
+        public ConsoleCommand(string description, bool requiresCheats = false, bool saveable = true)
+        {
+            Description = description;
+            RequiresCheats = requiresCheats;
+            Saveable = saveable;
+        }
+    }
+
+    public class ConsoleCommand<T> : ConsoleCommand, IConsoleCommand<T>
+    {
+        public T Value { get; set; }
+
+        public ConsoleCommand(ref T value, string description, bool requiresCheats = false, bool saveable = true)
+            : base(description, requiresCheats, saveable)
+        {
+            Value = value;
+        }
+
+        public void ValueSet(T value)
+        {
+            Value = value;
+        }
+
+        public override string ToString() => Value.ToString();
     }
 }

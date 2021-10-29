@@ -155,8 +155,9 @@ namespace BaselessJumping.Internals.Common.Utilities
             chosen.Clear();
             return values;
         }
-        public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => Base.spriteBatch.DrawString(Base.Fonts.Komika, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.25f, default, 0f);
+        public static void DrawStringAtMouse(object text, Vector2 offsetFromMouse) => Base.spriteBatch.DrawString(Base.Fonts.Lato, text.ToString(), MousePosition + offsetFromMouse, Color.White, 0f, Vector2.Zero, 0.6f, default, 0f);
         public static void DrawStringQuick(object text, Vector2 position, float scale = 1f, Vector2 anchor = default) => Base.spriteBatch.DrawString(Base.Fonts.Komika, text.ToString(), position, Color.White, 0f, anchor == default ? Base.Fonts.Komika.MeasureString(text.ToString()) / 2 : anchor, 0.25f * scale, default, 0f);
+        public static void DrawStringQuick_IgnoreOrigin(object text, Vector2 position, float scale = 1f) => Base.spriteBatch.DrawString(Base.Fonts.Komika, text.ToString(), position, Color.White, 0f, Vector2.Zero, 0.25f * scale, default, 0f);
         public static bool IsPlaying(this SoundEffectInstance instance) => instance.State == SoundState.Playing;
         public static bool IsPaused(this SoundEffectInstance instance) => instance.State == SoundState.Paused;
         public static bool IsStopped(this SoundEffectInstance instance) => instance.State == SoundState.Stopped;
@@ -232,7 +233,7 @@ namespace BaselessJumping.Internals.Common.Utilities
             return (float)rand.NextDouble() * (max - min) + min;
         }
 
-        public static string MakeInformationBox(string[] contents)
+        /*public static string MakeInformationBox(string[] contents)
         {
             var ceiling = '-';
             var floor = '-';
@@ -241,7 +242,7 @@ namespace BaselessJumping.Internals.Common.Utilities
 
 
             return "";
-        }
+        }*/
         public static void DrawHealthBar(HealthBar bar, Vector2 position, float width, float height)
         {
             Base.spriteBatch.Draw(Resources.GetGameResource<Texture2D>("WhitePixel"), new Rectangle((int)(position.X - (int)bar.maxLife / 2 * width), (int)position.Y, (int)(bar.maxLife * width), (int)height), Color.Red);

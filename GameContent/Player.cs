@@ -58,10 +58,11 @@ namespace BaselessJumping.GameContent
 
         private Texture2D texture;
 
-        public float gravity = 1f;
+        public static float gravity = 1f;
 
         /// <summary>The amount of life restored after every given tick.</summary>
         public double lifeRegen = 0.25f;
+        // could potentially be made static since data sent will be life, not life regen
 
         public bool IsCollidingFloor { get; private set; }
         public bool IsCollidingWallLeft { get; private set; }
@@ -70,6 +71,8 @@ namespace BaselessJumping.GameContent
         public bool IsColliding { get; private set; }
 
         public bool alive = true;
+        public static bool noclip = false;
+        public static bool immortal = false;
 
         public GameStopwatch[] pickupCooldowns = new GameStopwatch[Item.TOTAL_ITEMS];
         public GameStopwatch respawnTimer = new();
@@ -86,6 +89,10 @@ namespace BaselessJumping.GameContent
         public List<Vector2> oldPositions = new();
 
         public PlayerVisuals DetailManager { get; }
+
+        public static float jumpHeight = 1f;
+        public static float friction = 1f;
+        public static float moveSpeed = 1f;
 
         // eventually add an ID to the player
         internal Player(Texture2D texture)
@@ -117,7 +124,7 @@ namespace BaselessJumping.GameContent
 
                 if (!hitbox.Intersects(new(-50, -50, GameUtils.WindowWidth + 100, GameUtils.WindowHeight + 100))) // this is a box that extends slightly around the window.
                     Kill();
-                if (!IngameConsole.cheats_noclip)
+                if (!noclip)
                 {
                     velocity.Y += 0.15f * gravity;
 
@@ -208,14 +215,13 @@ namespace BaselessJumping.GameContent
         {
             if (IsCollidingFloor && !IsMoving && velocity.Y == 0)
             {
-                var fric = IngameConsole.phys_playerfriction;
                 switch (OnBlockType)
                 {
                     case Block.ID.Grass:
-                        velocity.X *= 0.92f / fric;
+                        velocity.X *= 0.92f / friction;
                         break;
                     case Block.ID.Stone:
-                        velocity.X *= 0.81f / fric;
+                        velocity.X *= 0.81f / friction;
                         break;
                 }
             }
@@ -226,20 +232,20 @@ namespace BaselessJumping.GameContent
             if (ControlJump.JustPressed)
             {
                 if (velocity.Y == 0f)
-                    velocity.Y -= 5f * IngameConsole.cheats_playerjumpheight;
+                    velocity.Y -= 5f * jumpHeight;
             }
             if (ControlRight.IsPressed)
             {
-                if (velocity.X < 3 * IngameConsole.cheats_playermovespeed)
+                if (velocity.X < 3 * moveSpeed)
                 {
-                    velocity.X += 0.5f * IngameConsole.cheats_playermovespeed;
+                    velocity.X += 0.5f * moveSpeed;
                 }
             }
             if (ControlLeft.IsPressed)
             {
-                if (velocity.X > -3 * IngameConsole.cheats_playermovespeed)
+                if (velocity.X > -3 * moveSpeed)
                 {
-                    velocity.X -= 0.5f * IngameConsole.cheats_playermovespeed;
+                    velocity.X -= 0.5f * moveSpeed;
                 }
             }
 
@@ -284,7 +290,7 @@ namespace BaselessJumping.GameContent
 
         private void UpdateLife()
         {
-            if (!IngameConsole.immortal)
+            if (!immortal)
             {
                 if (healthBar.currentLife <= 0)
                     Kill();
@@ -329,7 +335,7 @@ namespace BaselessJumping.GameContent
 
             var respawn = Resources.GetGameResource<SoundEffect>("PlayerRespawn");
 
-            SoundPlayer.PlaySoundInstance(respawn, 0.5f);
+            SoundPlayer.PlaySoundInstance(respawn, SoundContext.Sound);
 
             for (int i = 0; i < 50; i++)
             {
@@ -347,7 +353,7 @@ namespace BaselessJumping.GameContent
 
             var deathSound = Resources.GetGameResource<SoundEffect>("PlayerDeath");
 
-            SoundPlayer.PlaySoundInstance(deathSound, 0.5f);
+            SoundPlayer.PlaySoundInstance(deathSound, SoundContext.Sound);
 
             alive = false;
         }

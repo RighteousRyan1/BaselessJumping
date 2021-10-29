@@ -40,6 +40,10 @@ namespace BaselessJumping.Internals.Common
                 : (CurrentMouseSnapshot.RightButton != ButtonState.Pressed && OldMouseSnapshot.RightButton != ButtonState.Released);
             return GameUtils.WindowActive ? released : false;
         }
+        public static bool MiddleClick()
+        {
+            return CurrentMouseSnapshot.MiddleButton == ButtonState.Pressed && OldMouseSnapshot.MiddleButton == ButtonState.Released;
+        }
         public static Keys FirstPressedKey
         {
             get

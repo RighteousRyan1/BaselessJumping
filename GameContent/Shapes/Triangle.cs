@@ -124,7 +124,7 @@ namespace BaselessJumping.GameContent.Shapes
         /// <returns></returns>
         public bool IsRight()
         {
-            float longestSide = 0;
+            /*float longestSide = 0;
 
             float side1 = 0;
             float side2 = 0;
@@ -138,7 +138,7 @@ namespace BaselessJumping.GameContent.Shapes
                     side1 = FindSideLength(i);
 
                 }
-            }
+            }*/
             return false;
 
             //return dist_0_1 + dist_1_2 == dist_2_0; // a simple check using the pathagorean theorem
